@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Catbooru</string>
+    <string name="head_profile_manage">管理网站</string>
 </resources>

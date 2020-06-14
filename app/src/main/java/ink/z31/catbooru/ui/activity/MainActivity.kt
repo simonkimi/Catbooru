@@ -2,65 +2,70 @@ package ink.z31.catbooru.ui.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.widget.Toast
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
 import co.zsmb.materialdrawerkt.draweritems.profile.profile
 import co.zsmb.materialdrawerkt.draweritems.profile.profileSetting
+import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.Drawer
 import ink.z31.catbooru.R
+import ink.z31.catbooru.ui.viewModel.MainModel
+import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var result: Drawer
+    private lateinit var materialDrawer: Drawer
     private lateinit var headerResult: AccountHeader
+    private lateinit var viewModel: ViewModel
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        viewModel = ViewModelProvider(this).get(MainModel::class.java)
 
-        result = drawer {
+        setContentView(R.layout.activity_main)
+        // 侧滑菜单
+        materialDrawer = drawer {
             hasStableIds = true
             savedInstance = savedInstanceState
-            showOnFirstLaunch = true
 
+            // 用户一栏
             headerResult = accountHeader {
                 savedInstance = savedInstanceState
                 translucentStatusBar = true
-
-                profile("Mike Penz", "mikepenz@gmail.com") {
-                    iconUrl = "https://avatars3.githubusercontent.com/u/1476232?v=3&s=460"
-                    identifier = 100
-                }
-                profile("Bernat Borras", "alorma@github.com") {
-                    iconUrl = "https://avatars3.githubusercontent.com/u/887462?v=3&s=460"
-                    identifier = 101
-                }
-                profile("Max Muster", "max.mustermann@gmail.com") {
-                    icon = R.drawable.profile2
-                    identifier = 102
-                }
-                profile("Felix House", "felix.house@gmail.com") {
-                    icon = R.drawable.profile3
-                    identifier = 103
-                }
-                profile("Mr. X", "mister.x.super@gmail.com") {
-                    icon = R.drawable.profile4
-                    identifier = 104
-                }
-                profile("Batman", "batman@gmail.com") {
-                    icon = R.drawable.profile5
-                    identifier = 105
-                }
-                profileSetting("Add account", "Add new GitHub Account") {
-                    iicon = GoogleMaterial.Icon.gmd_add
-                    identifier = 100_000
-                }
-                profileSetting("Manage Account") {
+                profileSetting(this@MainActivity.getString(R.string.head_profile_manage)) {
                     iicon = GoogleMaterial.Icon.gmd_settings
                     identifier = 100_001
                 }
             }
         }
+
+        // 初始化搜索条
+        this.searchBar.setOnSearchActionListener(object: MaterialSearchBar.OnSearchActionListener {
+            override fun onButtonClicked(buttonCode: Int) {
+                when (buttonCode) {
+                    MaterialSearchBar.BUTTON_NAVIGATION -> {
+                        materialDrawer.openDrawer()
+                    }
+                }
+            }
+
+            override fun onSearchStateChanged(enabled: Boolean) {
+
+            }
+
+            override fun onSearchConfirmed(text: CharSequence?) {
+
+            }
+        })
+
+
     }
+
+
+
 }
+

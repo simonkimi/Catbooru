@@ -41,6 +41,7 @@ dependencies {
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
     implementation "androidx.room:room-runtime:2.2.5"
     kapt "androidx.room:room-compiler:2.2.5"
+    implementation "com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.4"
 
     // MaterialDrawerKt
     implementation 'co.zsmb:materialdrawer-kt:3.0.0'
@@ -50,5 +51,9 @@ dependencies {
 
     // Material SearchBar Android
     implementation 'com.github.mancj:MaterialSearchBar:0.8.5'
+
+    // glide
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
 
 }

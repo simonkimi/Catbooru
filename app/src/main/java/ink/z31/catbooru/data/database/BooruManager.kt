@@ -4,7 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 
-enum class BooruType(var type: Int) {
+enum class BooruType(val BooruType: Int) {
     GELBOORU(0x0)
 }
 
@@ -12,7 +12,7 @@ enum class BooruType(var type: Int) {
 data class Booru(
     var name: String,
     var url: String,
-    var type: BooruType
+    var type: Int
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0

@@ -10,8 +10,8 @@ class GelbooruView(html: String): BaseBooruView(html) {
     override fun parseTagList(): List<BooruTag> {
         val tagNodes = pageDocument.select("#tag-list>li")
         return tagNodes.map {
-            val name = it.selectFirst("a:nth-child(4)").text()
-            val number = it.selectFirst("span").text().toInt()
+            val name = it.selectFirst("a:nth-child(4)")?.text() ?: "unknown"
+            val number = it.selectFirst("span")?.text()?.toInt() ?: 0
             BooruTag(name, getTagType(it), number)
         }
     }
@@ -21,12 +21,12 @@ class GelbooruView(html: String): BaseBooruView(html) {
         val resize = image.attr("src")
         val originalImageUrl = pageDocument
             .selectFirst("[href^=\"https://img\"]")
-            .attr("href")
+            ?.attr("href") ?: "unknown"
         return BooruImage(
             resize,
             originalImageUrl,
-            image.attr("data-original-width"),
-            image.attr("data-original-height")
+            image?.attr("data-original-width") ?: "unknown",
+            image?.attr("data-original-height")  ?: "unknown"
         )
     }
 

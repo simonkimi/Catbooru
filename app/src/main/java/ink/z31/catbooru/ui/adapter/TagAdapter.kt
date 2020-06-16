@@ -12,6 +12,10 @@ import ink.z31.catbooru.data.model.base.BooruPreviewImage
 class TagAdapter(data: MutableList<BooruPreviewImage>) :
     BaseQuickAdapter<BooruPreviewImage, BaseViewHolder>(R.layout.item_preview, data) {
 
+    fun setData(newData: MutableList<BooruPreviewImage>) {
+        this.data = newData
+    }
+
     override fun convert(holder: BaseViewHolder, item: BooruPreviewImage) {
         val img = holder.getView<ImageView>(R.id.previewImg)
         val screenWidth = context.resources.displayMetrics.widthPixels

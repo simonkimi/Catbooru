@@ -17,7 +17,6 @@ import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.Drawer
 import ink.z31.catbooru.R
-import ink.z31.catbooru.data.model.base.BooruPreviewImage
 import ink.z31.catbooru.ui.adapter.TagAdapter
 import ink.z31.catbooru.ui.viewModel.MainModel
 import kotlinx.android.synthetic.main.activity_main.*
@@ -76,10 +75,13 @@ class MainActivity : AppCompatActivity() {
         this.previewRecyclerView.layoutManager = layoutManager
         val adapter = TagAdapter(mutableListOf())
         this.previewRecyclerView.adapter = adapter
-        this.viewModel.preViewImgList.observe(this, Observer { preViewImgList ->
-            adapter.setData(preViewImgList)
-            adapter.notifyDataSetChanged()
+        this.viewModel.booruPostList.observe(this, Observer { booruPost ->
+            booruPost?.let {
+                adapter.setData(booruPost)
+                adapter.notifyDataSetChanged()
+            }
         })
+        this.viewModel.test()
     }
 }
 

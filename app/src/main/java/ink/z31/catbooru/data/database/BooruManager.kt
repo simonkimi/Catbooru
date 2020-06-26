@@ -5,7 +5,8 @@ import androidx.room.PrimaryKey
 
 
 enum class BooruType(val BooruType: Int) {
-    GELBOORU(0x0)
+    GELBOORU(0x0),
+    DANBOORU(0x1)
 }
 
 @Entity

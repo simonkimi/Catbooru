@@ -6,8 +6,8 @@ import okhttp3.Request
 import okhttp3.Response
 
 
+private const val TAG = "LoggingInterceptor"
 class LoggingInterceptor : Interceptor {
-    private val TAG = "LoggingInterceptor"
     override fun intercept(chain: Interceptor.Chain): Response {
         val request: Request = chain.request()
         Log.d(TAG, "发送数据 ${request.url()} on ${chain.connection()}")

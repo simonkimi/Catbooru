@@ -4,6 +4,7 @@ import com.tickaroo.tikxml.annotation.Attribute
 import com.tickaroo.tikxml.annotation.Element
 import com.tickaroo.tikxml.annotation.Xml
 import ink.z31.catbooru.data.model.base.BooruPost
+import ink.z31.catbooru.data.model.base.BooruPostEnd
 import ink.z31.catbooru.data.model.base.RATING
 
 fun getRating(name: String) = when (name) {
@@ -18,7 +19,7 @@ data class GelbooruPost(
     @Attribute(name = "id")
     val id: Int,
     @Attribute(name = "creator_id")
-    val creatorId: Int,
+    val creatorId: String,
     // 图片地址
     @Attribute(name = "file_url")
     val imgURL: String,
@@ -48,10 +49,6 @@ data class GelbooruPost(
     val tags: String,
     @Attribute(name = "source")
     val source: String
-
-
-
-
 )
 
 @Xml(name = "posts")
@@ -61,27 +58,32 @@ data class GelbooruPostList(
     @Attribute
     val count: Int,
     @Element
-    var posts: List<GelbooruPost>
+    var posts: List<GelbooruPost>?
 ) {
-    fun getBooruList() = posts.map {
-        BooruPost(
-            id = it.id,
-            creatorId = it.creatorId,
-            imgURL = it.imgURL,
-            previewURL = it.previewURL,
-            sampleURL = it.sampleURL,
-            width = it.width,
-            height = it.height,
-            sampleHeight = it.sampleHeight,
-            sampleWidth = it.sampleWidth,
-            previewHeight = it.previewHeight,
-            previewWidth = it.previewWidth,
-            rating = getRating(it.rating),
-            status = it.status,
-            tags = it.tags.split(" "),
-            source = it.source
-        )
-
+    fun getBooruList(): List<BooruPost> {
+        if (posts != null) {
+            return posts?.map {
+                BooruPost(
+                    id = it.id,
+                    creatorId = it.creatorId,
+                    imgURL = it.imgURL,
+                    previewURL = it.previewURL,
+                    sampleURL = it.sampleURL,
+                    width = it.width,
+                    height = it.height,
+                    sampleHeight = it.sampleHeight,
+                    sampleWidth = it.sampleWidth,
+                    previewHeight = it.previewHeight,
+                    previewWidth = it.previewWidth,
+                    rating = getRating(it.rating),
+                    status = it.status,
+                    tags = it.tags.split(" "),
+                    source = it.source
+                )
+            } ?: mutableListOf()
+        } else {
+            throw BooruPostEnd("加载完成")
+        }
     }
 }
 

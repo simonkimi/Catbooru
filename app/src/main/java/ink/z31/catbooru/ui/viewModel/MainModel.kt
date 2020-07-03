@@ -23,7 +23,7 @@ class MainModel : ViewModel() {
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
 
     private var booru: Booru =
-        Booru(name = "Moebooru", url = "https://yande.re", type = BooruType.MOEBOORU.value)
+        Booru(name = "Moebooru", url = "https://gelbooru.com/", type = BooruType.GELBOORU.value)
     private var booruRepository = BooruRepository(booru)
 
     init {

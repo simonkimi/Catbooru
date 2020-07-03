@@ -1,5 +1,6 @@
 package ink.z31.catbooru.ui.adapter
 
+import android.util.Log
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -25,7 +26,6 @@ class TagAdapter(data: MutableList<BooruPost>) :
         val fitWidth = screenWidth / 3 - 10
         val fitHeight = fitWidth * item.previewHeight / item.previewWidth
         holder.setText(R.id.previewText, "#${item.id}")
-
         Glide.with(context)
             .load(item.previewURL)
             .override(fitWidth, fitHeight)

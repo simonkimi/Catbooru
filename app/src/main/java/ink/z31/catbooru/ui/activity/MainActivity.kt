@@ -87,13 +87,14 @@ class MainActivity : AppCompatActivity() {
             viewModel.launchNextPage()
             adapter.loadMoreModule.loadMoreComplete()
         }
-        // 观察数据变动
+        // 预览图
         this.viewModel.booruPostList.observe(this, Observer { booruPost ->
             booruPost?.let {
                 adapter.setData(booruPost)
                 adapter.notifyDataSetChanged()
             }
         })
+        // 是否最后一面
         this.viewModel.booruPostEnd.observe(this, Observer {
             if (it) {
                 adapter.loadMoreModule.loadMoreEnd()
@@ -101,6 +102,7 @@ class MainActivity : AppCompatActivity() {
                 adapter.setNewInstance(adapter.data)
             }
         })
+        // 加载进度条
         this.viewModel.progressBarVis.observe(this, Observer {
             progressBar.visibility = if (it) {
                 View.VISIBLE

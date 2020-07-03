@@ -5,25 +5,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.activity.PostActivity">
+    tools:context=".ui.activity.BooruManagerActivity">
 
-    <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
-        android:id="@+id/imageView"
-        android:background="#000000"
+
+    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        style="@style/toolbarTransparent"
-        tools:ignore="MissingConstraints">
+        android:layout_height="wrap_content">
         <androidx.appcompat.widget.Toolbar
-            android:id="@+id/postToolbar"
-            android:background="@color/transparent"
+            android:id="@+id/booruManagerToolbar"
+            android:layout_width="match_parent"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
             app:popupTheme="@style/Theme.AppCompat.Light"
-            android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"/>
     </com.google.android.material.appbar.AppBarLayout>
 

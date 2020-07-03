@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">Catbooru</string>
     <string name="head_profile_manage">管理网站</string>
-    <string name="preview">preview</string>
+    <string name="preview">预览</string>
     <string name="quickSearch">快速搜索</string>
+
+    <string name="tag">tag</string>
+    <string name="info">信息</string>
+    <string name="download">下载</string>
+    <string name="openInBrowser">浏览器打开</string>
+
+    <string name="add">添加</string>
 </resources>

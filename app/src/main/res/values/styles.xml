@@ -7,4 +7,12 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="toolbarTransparent" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="elevation">0dp</item>
+        <item name="android:background">@color/transparent</item>
+    </style>
+
+    <style name="postActivityTheme" parent="AppTheme">
+        <item name="android:statusBarColor">@color/transparent</item>
+    </style>
 </resources>

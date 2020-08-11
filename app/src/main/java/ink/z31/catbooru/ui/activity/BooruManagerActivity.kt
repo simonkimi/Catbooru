@@ -13,7 +13,15 @@ class BooruManagerActivity : AppCompatActivity() {
         setContentView(R.layout.activity_booru_manager)
         setSupportActionBar(this.booruManagerToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        this.booruManagerToolbar.setOnMenuItemClickListener { item ->
+            when(item.itemId) {
+                R.id.manager_add ->
+                    TODO("添加")
+            }
+            true
+        }
     }
+
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.booru_manager_menu, menu)

@@ -1,18 +1,16 @@
 package ink.z31.catbooru.ui.activity
 
-import androidx.appcompat.app.AppCompatActivity
+
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
-import co.zsmb.materialdrawerkt.draweritems.profile.profile
 import co.zsmb.materialdrawerkt.draweritems.profile.profileSetting
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
@@ -21,15 +19,18 @@ import com.mikepenz.materialdrawer.Drawer
 import ink.z31.catbooru.R
 import ink.z31.catbooru.ui.adapter.TagAdapter
 import ink.z31.catbooru.ui.viewModel.MainModel
+import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
 import kotlinx.android.synthetic.main.activity_main.*
+
 
 private const val TAG = "MainActivity"
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
     private lateinit var materialDrawer: Drawer
     private lateinit var headerResult: AccountHeader
     private lateinit var viewModel: MainModel
+    private lateinit var mSearchBarMover: SearchBarMover
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -71,6 +72,12 @@ class MainActivity : AppCompatActivity() {
                 viewModel.launchNewSearch(text.toString())
             }
         })
+        mSearchBarMover = SearchBarMover(
+            this,
+            this.searchBar,
+            this.previewRecyclerView
+        )
+        this.searchBar.elevation = 5F
         initPreview()
     }
 
@@ -110,8 +117,25 @@ class MainActivity : AppCompatActivity() {
                 View.INVISIBLE
             }
         })
+
+//        val view = View(this)
+//        val layoutParams = LinearLayout.LayoutParams(180, PX.dip2px(this, 62F))
+//        view.layoutParams = layoutParams
+//        adapter.addHeaderView(view)
         this.previewRecyclerView.adapter = adapter
         viewModel.launchNewSearch("")
+    }
+
+    override fun isValidView(recyclerView: RecyclerView): Boolean {
+        return recyclerView == this.previewRecyclerView
+    }
+
+    override fun getValidRecyclerView(): RecyclerView? {
+        return this.previewRecyclerView
+    }
+
+    override fun forceShowSearchBar(): Boolean {
+        return false
     }
 }
 

@@ -58,6 +58,8 @@ class MainModel : ViewModel() {
             } catch (e: BooruPostEnd) {
                 Log.i(TAG, "加载界面, 已经到最后一面了")
                 booruPostEnd.value = true
+            } catch (e: Exception) {
+
             } finally {
                 progressBarVis.value = false
             }
@@ -104,7 +106,6 @@ class BooruRepository(booru: Booru) {
 
     suspend fun nextPage(): List<BooruPost> {
         return booruPostList.getNextPage()
-
     }
 }
 
@@ -114,7 +115,12 @@ class BooruPostList(private val api: BooruNetwork, private val tags: String) {
     private val booruLimit = 50
 
     suspend fun getNextPage(): List<BooruPost> {
+        val data = try {
+            this.api.postsList(booruLimit, booruPage, tags)
+        } catch (e: Exception) {
+            throw e
+        }
         booruPage += 1
-        return this.api.postsList(booruLimit, booruPage, tags)
+        return data
     }
 }

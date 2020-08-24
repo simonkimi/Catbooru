@@ -12,14 +12,16 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.activity.SettingsActivity"
+            android:name=".ui.activity.AddBooruActivity"
             android:label="@string/title_activity_settings" >
+
+        </activity>
+        <activity android:name=".ui.activity.BooruManagerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ui.activity.BooruManagerActivity"/>
         <activity android:name=".ui.activity.PostActivity" />
         <activity android:name=".ui.activity.MainActivity" />
     </application>

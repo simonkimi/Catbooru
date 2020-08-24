@@ -1,30 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <PreferenceCategory
-        app:title="添加Booru">
+    <PreferenceCategory app:title="基础信息">
         <EditTextPreference
-            android:defaultValue="Default value"
-            android:key="edit_text_preference_1"
+            android:key="booru_name"
+            android:defaultValue="Example"
+            android:summary="Booru昵称"
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="@string/booruName" />
-
+    </PreferenceCategory>
+    <PreferenceCategory app:title="添加Booru">
         <EditTextPreference
+            android:key="booru_host"
+            android:icon="@drawable/ic_baseline_http_24"
             android:defaultValue="Default value"
-            android:key="edit_text_preference_1"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:title="@string/booruHost"
-            android:summary="@string/booruHostSummary"/>
+            android:summary="@string/booruHostSummary"
+            android:title="@string/booruHost" />
 
-        <ListPreference
-            android:key="list_preference"
+        <DropDownPreference
+            android:key="booru_type"
+            android:icon="@drawable/ic_baseline_local_offer_24"
             android:title="@string/booruType"
-            android:summary="@string/booruTypeSummary"
             android:entries="@array/booruType"
             android:entryValues="@array/booruTypeValue"
-            android:dialogTitle="Type"/>
+            android:summary="@string/booruTypeSummary" />
+
+        <Preference
+            android:summary="点击可自动识别协议类型"
+            android:title="自动识别"
+            android:icon="@drawable/ic_baseline_autorenew_24"/>
+
     </PreferenceCategory>
 </PreferenceScreen>

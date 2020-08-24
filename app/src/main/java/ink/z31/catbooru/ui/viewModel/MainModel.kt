@@ -10,10 +10,8 @@ import ink.z31.catbooru.data.network.BooruNetwork
 import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
-import kotlin.coroutines.CoroutineContext
 
 private const val TAG = "MainModel"
 
@@ -23,7 +21,7 @@ class MainModel : ViewModel() {
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
 
     private var booru: Booru =
-        Booru(name = "Moebooru", url = "https://gelbooru.com/", type = BooruType.GELBOORU.value)
+        Booru(name = "Moebooru", host = "https://gelbooru.com/", type = BooruType.GELBOORU.value)
     private var booruRepository = BooruRepository(booru)
 
     init {

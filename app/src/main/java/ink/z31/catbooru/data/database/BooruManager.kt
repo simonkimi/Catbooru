@@ -3,17 +3,39 @@ package ink.z31.catbooru.data.database
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+interface IBooruType {
+    fun getBooruString(): String
+}
 
-enum class BooruType(val value: Int) {
-    GELBOORU(0x0),
-    DANBOORU(0x1),
-    MOEBOORU(0x2)
+enum class BooruType(val value: Int) : IBooruType {
+    GELBOORU(0x0) {
+        override fun getBooruString(): String {
+            return "Gelbooru"
+        }
+    },
+    DANBOORU(0x1) {
+        override fun getBooruString(): String {
+            return "Danbooru"
+        }
+    },
+    MOEBOORU(0x2) {
+        override fun getBooruString(): String {
+            return "MoeBooru"
+        }
+    };
+
+    companion object {
+        fun get(index: Int): BooruType? {
+            val list = values().toList().filter { it.value == index }
+            return if (list.isEmpty()) null else list[0]
+        }
+    }
 }
 
 @Entity
 data class Booru(
     var name: String,
-    var url: String,
+    var host: String,
     var type: Int
 ) {
     @PrimaryKey(autoGenerate = true)

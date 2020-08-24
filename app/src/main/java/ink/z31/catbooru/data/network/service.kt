@@ -32,7 +32,7 @@ class Service(booru: Booru) {
             // XML为主的Booru
             // Gelbooru
             BooruType.GELBOORU.value -> Retrofit.Builder()
-                .baseUrl(booru.url)
+                .baseUrl(booru.host)
                 .addConverterFactory(TikXmlConverterFactory.create(tikXml))
                 .client(okHttpClient)
                 .build()
@@ -40,12 +40,12 @@ class Service(booru: Booru) {
             // Danbooru Moebooru
             BooruType.DANBOORU.value,
             BooruType.MOEBOORU.value -> Retrofit.Builder()
-                .baseUrl(booru.url)
+                .baseUrl(booru.host)
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .build()
             else -> Retrofit.Builder()
-                .baseUrl(booru.url)
+                .baseUrl(booru.host)
                 .addConverterFactory(TikXmlConverterFactory.create(tikXml))
                 .client(okHttpClient)
                 .build()

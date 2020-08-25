@@ -1,240 +1,122 @@
-/*
- * Copyright 2016 Hippo Seven
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package ink.z31.catbooru.ui.widget.recyclerView
 
-package ink.z31.catbooru.ui.widget.recyclerView;
+import android.animation.Animator
+import android.animation.ValueAnimator
+import android.animation.ValueAnimator.AnimatorUpdateListener
+import android.view.View
+import androidx.recyclerview.widget.RecyclerView
+import ink.z31.catbooru.util.MathUtils.clamp
+import ink.z31.catbooru.util.ViewUtils.getY2
+import ink.z31.catbooru.util.ViewUtils.translationYBy
 
-import android.animation.Animator;
-import android.animation.ValueAnimator;
-import android.view.View;
+class SearchBarMover(
+    private val mHelper: Helper,
+    private val mSearchBar: View,
+    vararg recyclerViews: RecyclerView
+) : RecyclerView.OnScrollListener() {
+    private var mShow = false
+    private var mSearchBarMoveAnimator: ValueAnimator? = null
 
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.RecyclerView;
-
-import ink.z31.catbooru.util.MathUtils;
-import ink.z31.catbooru.util.ViewUtils;
-
-
-public class SearchBarMover extends RecyclerView.OnScrollListener {
-
-    private static final long ANIMATE_TIME = 300L;
-
-    private boolean mShow;
-    private ValueAnimator mSearchBarMoveAnimator;
-    private final Helper mHelper;
-    private final View mSearchBar;
-
-    public SearchBarMover(Helper helper, View searchBar, RecyclerView... recyclerViews) {
-        mHelper = helper;
-        mSearchBar = searchBar;
-        for (RecyclerView recyclerView : recyclerViews) {
-            recyclerView.addOnScrollListener(this);
-        }
-    }
-
-    public void cancelAnimation() {
-        if (mSearchBarMoveAnimator != null) {
-            mSearchBarMoveAnimator.cancel();
-        }
-    }
-
-    @Override
-    public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
         if (newState == RecyclerView.SCROLL_STATE_IDLE && mHelper.isValidView(recyclerView)) {
-            returnSearchBarPosition();
+            returnSearchBarPosition()
         }
     }
 
-    @Override
-    public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+    override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
         if (mHelper.isValidView(recyclerView)) {
-            int oldBottom = (int) ViewUtils.getY2(mSearchBar);
-            int offsetYStep = MathUtils.clamp(-dy, -oldBottom, -(int) mSearchBar.getTranslationY());
+            val oldBottom = getY2(mSearchBar).toInt()
+            val offsetYStep = clamp(-dy, -oldBottom, (-mSearchBar.translationY).toInt())
             if (offsetYStep != 0) {
-                ViewUtils.translationYBy(mSearchBar, offsetYStep);
+                translationYBy(mSearchBar, offsetYStep.toFloat())
             }
         }
     }
 
-    public void returnSearchBarPosition() {
-        returnSearchBarPosition(true);
-    }
-
-    @SuppressWarnings("SimplifiableIfStatement")
-    public void returnSearchBarPosition(boolean animation) {
-        if (mSearchBar.getHeight() == 0) {
-            // Layout not called
-            return;
+    @JvmOverloads
+    fun returnSearchBarPosition(animation: Boolean = true) {
+        if (mSearchBar.height == 0) {
+            return
         }
-
-        boolean show;
-        if (mHelper.forceShowSearchBar()) {
-            show = true;
+        val show: Boolean
+        show = if (mHelper.forceShowSearchBar()) {
+            true
         } else {
-            RecyclerView recyclerView = mHelper.getValidRecyclerView();
-            if (recyclerView == null) {
-                return;
-            }
-            if (!recyclerView.isShown()) {
-                show = true;
-            } else if (recyclerView.computeVerticalScrollOffset() < mSearchBar.getBottom()) {
-                show = true;
+            val recyclerView = mHelper.validRecyclerView ?: return
+            if (!recyclerView.isShown) {
+                true
+            } else if (recyclerView.computeVerticalScrollOffset() < mSearchBar.bottom) {
+                true
             } else {
-                show = (int) ViewUtils.getY2(mSearchBar) > (mSearchBar.getHeight()) / 2;
+                getY2(mSearchBar).toInt() > mSearchBar.height / 2
             }
         }
-
-        int offset;
-        if (show) {
-            offset = -(int) mSearchBar.getTranslationY();
+        val offset: Int
+        offset = if (show) {
+            (-mSearchBar.translationY).toInt()
         } else {
-            offset = -(int) ViewUtils.getY2(mSearchBar);
+            (-getY2(mSearchBar)).toInt()
         }
-
         if (offset == 0) {
             // No need to scroll
-            return;
+            return
         }
-
         if (animation) {
             if (mSearchBarMoveAnimator != null) {
-                if (mShow == show) {
+                mSearchBarMoveAnimator = if (mShow == show) {
                     // The same target, no need to do animation
-                    return;
+                    return
                 } else {
                     // Cancel it
-                    mSearchBarMoveAnimator.cancel();
-                    mSearchBarMoveAnimator = null;
+                    mSearchBarMoveAnimator!!.cancel()
+                    null
                 }
             }
-
-            mShow = show;
-            final ValueAnimator va = ValueAnimator.ofInt(0, offset);
-            va.setDuration(ANIMATE_TIME);
-            va.addListener(new SimpleAnimatorListener() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mSearchBarMoveAnimator = null;
+            mShow = show
+            val va = ValueAnimator.ofInt(0, offset)
+            va.duration = ANIMATE_TIME
+            va.addListener(object : SimpleAnimatorListener() {
+                override fun onAnimationEnd(animation: Animator) {
+                    mSearchBarMoveAnimator = null
                 }
-            });
-            va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                int lastValue;
-
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    int value = (Integer) animation.getAnimatedValue();
-                    int offsetStep = value - lastValue;
-                    lastValue = value;
-                    ViewUtils.translationYBy(mSearchBar, offsetStep);
+            })
+            va.addUpdateListener(object : AnimatorUpdateListener {
+                var lastValue = 0
+                override fun onAnimationUpdate(animation: ValueAnimator) {
+                    val value = animation.animatedValue as Int
+                    val offsetStep = value - lastValue
+                    lastValue = value
+                    translationYBy(mSearchBar, offsetStep.toFloat())
                 }
-            });
-            mSearchBarMoveAnimator = va;
-            va.start();
+            })
+            mSearchBarMoveAnimator = va
+            va.start()
         } else {
-            if (mSearchBarMoveAnimator != null) {
-                mSearchBarMoveAnimator.cancel();
-            }
-            ViewUtils.translationYBy(mSearchBar, offset);
+            mSearchBarMoveAnimator?.cancel()
+            translationYBy(mSearchBar, offset.toFloat())
         }
     }
 
-    public void showSearchBar() {
-        showSearchBar(true);
+    interface Helper {
+        fun isValidView(recyclerView: RecyclerView?): Boolean
+        val validRecyclerView: RecyclerView?
+        fun forceShowSearchBar(): Boolean
     }
 
-    public void showSearchBar(boolean animation) {
-        if (mSearchBar.getHeight() == 0) {
-            // Layout not called
-            return;
-        }
-
-        final int offset = -(int) mSearchBar.getTranslationY();
-
-        if (offset == 0) {
-            // No need to scroll
-            return;
-        }
-
-        if (animation) {
-            if (mSearchBarMoveAnimator != null) {
-                if (mShow) {
-                    // The same target, no need to do animation
-                    return;
-                } else {
-                    // Cancel it
-                    mSearchBarMoveAnimator.cancel();
-                    mSearchBarMoveAnimator = null;
-                }
-            }
-
-            mShow = true;
-            final ValueAnimator va = ValueAnimator.ofInt(0, offset);
-            va.setDuration(ANIMATE_TIME);
-            va.addListener(new SimpleAnimatorListener() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mSearchBarMoveAnimator = null;
-                }
-            });
-            va.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                int lastValue;
-
-                @Override
-                public void onAnimationUpdate(ValueAnimator animation) {
-                    int value = (Integer) animation.getAnimatedValue();
-                    int offsetStep = value - lastValue;
-                    lastValue = value;
-                    ViewUtils.translationYBy(mSearchBar, offsetStep);
-                }
-            });
-            mSearchBarMoveAnimator = va;
-            va.start();
-        } else {
-            if (mSearchBarMoveAnimator != null) {
-                mSearchBarMoveAnimator.cancel();
-            }
-            ViewUtils.translationYBy(mSearchBar, offset);
-        }
+    companion object {
+        private const val ANIMATE_TIME = 300L
     }
 
-    public interface Helper {
-
-        boolean isValidView(RecyclerView recyclerView);
-
-        @Nullable
-        RecyclerView getValidRecyclerView();
-
-        boolean forceShowSearchBar();
+    init {
+        for (recyclerView in recyclerViews) {
+            recyclerView.addOnScrollListener(this)
+        }
     }
 }
 
-abstract class SimpleAnimatorListener implements Animator.AnimatorListener {
-
-    @Override
-    public void onAnimationStart(Animator animation) {
-    }
-
-    @Override
-    public void onAnimationEnd(Animator animation) {
-    }
-
-    @Override
-    public void onAnimationCancel(Animator animation) {
-    }
-
-    @Override
-    public void onAnimationRepeat(Animator animation) {
-    }
+internal abstract class SimpleAnimatorListener : Animator.AnimatorListener {
+    override fun onAnimationStart(animation: Animator) {}
+    override fun onAnimationEnd(animation: Animator) {}
+    override fun onAnimationCancel(animation: Animator) {}
+    override fun onAnimationRepeat(animation: Animator) {}
 }

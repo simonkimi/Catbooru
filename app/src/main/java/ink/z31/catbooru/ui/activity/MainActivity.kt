@@ -18,7 +18,7 @@ import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.Drawer
 import ink.z31.catbooru.R
 import ink.z31.catbooru.ui.adapter.TagAdapter
-import ink.z31.catbooru.ui.viewModel.MainModel
+import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -29,12 +29,12 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
     private lateinit var materialDrawer: Drawer
     private lateinit var headerResult: AccountHeader
-    private lateinit var viewModel: MainModel
+    private lateinit var viewModel: MainViewModel
     private lateinit var mSearchBarMover: SearchBarMover
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        viewModel = ViewModelProvider(this).get(MainModel::class.java)
+        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
         // 侧滑tag
         val toolbar = this.tagToolBar
         toolbar.title = this.getString(R.string.quickSearch)
@@ -118,10 +118,6 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
         })
 
-//        val view = View(this)
-//        val layoutParams = LinearLayout.LayoutParams(180, PX.dip2px(this, 62F))
-//        view.layoutParams = layoutParams
-//        adapter.addHeaderView(view)
         this.previewRecyclerView.adapter = adapter
         viewModel.launchNewSearch("")
     }

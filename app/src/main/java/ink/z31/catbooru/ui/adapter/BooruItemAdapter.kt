@@ -20,4 +20,8 @@ class BooruItemAdapter(data: MutableList<Booru>) :
         )
     }
 
+    fun setData(data: MutableList<Booru>) {
+        this.data = data
+    }
+
 }

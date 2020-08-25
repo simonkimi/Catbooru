@@ -1,7 +1,9 @@
 package ink.z31.catbooru.ui.viewModel
 
+import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.Booru
 import ink.z31.catbooru.data.database.BooruType
 import ink.z31.catbooru.data.model.base.BooruPost
@@ -13,20 +15,26 @@ import ink.z31.catbooru.data.network.MoebooruNetwork
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
-private const val TAG = "MainModel"
+private const val TAG = "MainViewModel"
 
-class MainModel : ViewModel() {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
+    private val booruDao = AppDatabase.getDatabase(getApplication()).booruDao()
+
     val booruPostList = MutableLiveData<MutableList<BooruPost>>()  // 缩略图列表
     val booruPostEnd = MutableLiveData<Boolean>()  // 是否到最后一面
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
+    val booruList = MutableLiveData<MutableList<Booru>>() // booru列表
 
+    // TODO 把Booru和Dao联系起来
     private var booru: Booru =
         Booru(name = "Moebooru", host = "https://gelbooru.com/", type = BooruType.GELBOORU.value)
+
     private var booruRepository = BooruRepository(booru)
 
     init {
         booruPostList.value = mutableListOf()
         booruPostEnd.value = false
+        booruList.value = booruDao.getAllBooru().toMutableList()
     }
 
     /**
@@ -50,14 +58,14 @@ class MainModel : ViewModel() {
                 val newList = mutableListOf<BooruPost>()
                 newList.addAll(newSearchList)
                 booruPostList.value = newList
-                if (booruPostEnd.value!!) {
+                if (booruPostEnd.value == true) {
                     booruPostEnd.value = false
                 }
             } catch (e: BooruPostEnd) {
                 Log.i(TAG, "加载界面, 已经到最后一面了")
                 booruPostEnd.value = true
             } catch (e: Exception) {
-
+                Log.e(TAG, "加载页面发生错误${e.stackTrace}")
             } finally {
                 progressBarVis.value = false
             }

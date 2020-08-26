@@ -6,14 +6,14 @@ import ink.z31.catbooru.data.database.Booru
 @Dao
 interface BooruDao {
     @Insert
-    fun insertBooru(booru: Booru)
+    suspend fun insertBooru(booru: Booru)
 
     @Update
-    fun updateBooru(booru: Booru)
+    suspend fun updateBooru(booru: Booru)
 
     @Query("select * from Booru")
-    fun getAllBooru(): List<Booru>
+    suspend fun getAllBooru(): List<Booru>
 
     @Delete
-    fun deleteBooru(booru: Booru)
+    suspend fun deleteBooru(booru: Booru)
 }

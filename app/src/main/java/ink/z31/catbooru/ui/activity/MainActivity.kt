@@ -122,7 +122,8 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         viewModel.launchNewSearch("")
     }
 
-    override fun isValidView(recyclerView: RecyclerView): Boolean {
+
+    override fun isValidView(recyclerView: RecyclerView?): Boolean {
         return recyclerView == this.previewRecyclerView
     }
 

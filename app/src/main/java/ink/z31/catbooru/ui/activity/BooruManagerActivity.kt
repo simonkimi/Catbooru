@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import ink.z31.catbooru.R
 import ink.z31.catbooru.ui.adapter.BooruItemAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
+import ink.z31.catbooru.ui.viewModel.MainViewModelFactory
 import kotlinx.android.synthetic.main.activity_booru_manager.*
 
 class BooruManagerActivity : AppCompatActivity() {
@@ -31,7 +32,7 @@ class BooruManagerActivity : AppCompatActivity() {
             true
         }
         // 加载数据
-        mainViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        mainViewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
         val layoutManager = LinearLayoutManager(this)
         val adapter = BooruItemAdapter(mainViewModel.booruList.value ?: mutableListOf())
         mainViewModel.booruList.observe(this, Observer { booruList ->

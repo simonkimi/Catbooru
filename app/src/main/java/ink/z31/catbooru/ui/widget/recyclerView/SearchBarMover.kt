@@ -42,7 +42,7 @@ class SearchBarMover(
         show = if (mHelper.forceShowSearchBar()) {
             true
         } else {
-            val recyclerView = mHelper.validRecyclerView ?: return
+            val recyclerView = mHelper.getValidRecyclerView() ?: return
             if (!recyclerView.isShown) {
                 true
             } else if (recyclerView.computeVerticalScrollOffset() < mSearchBar.bottom) {
@@ -99,7 +99,7 @@ class SearchBarMover(
 
     interface Helper {
         fun isValidView(recyclerView: RecyclerView?): Boolean
-        val validRecyclerView: RecyclerView?
+        fun getValidRecyclerView(): RecyclerView?
         fun forceShowSearchBar(): Boolean
     }
 

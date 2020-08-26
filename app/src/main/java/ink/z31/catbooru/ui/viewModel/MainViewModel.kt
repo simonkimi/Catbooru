@@ -25,16 +25,29 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
     val booruList = MutableLiveData<MutableList<Booru>>() // booru列表
 
-    // TODO 把Booru和Dao联系起来
-    private var booru: Booru =
-        Booru(name = "Moebooru", host = "https://gelbooru.com/", type = BooruType.GELBOORU.value)
 
-    private var booruRepository = BooruRepository(booru)
+    private lateinit var booruRepository: BooruRepository
 
     init {
         booruPostList.value = mutableListOf()
         booruPostEnd.value = false
-        booruList.value = booruDao.getAllBooru().toMutableList()
+
+
+        val booru =
+            Booru(
+                name = "Moebooru",
+                host = "https://gelbooru.com/",
+                type = BooruType.GELBOORU.value
+            )
+        launchNewBooru(booru)
+
+        viewModelScope.launch {
+            booruList.value = getBooru()
+        }
+    }
+
+    suspend fun getBooru(): MutableList<Booru> {
+        return booruDao.getAllBooru().toMutableList()
     }
 
     /**
@@ -92,8 +105,16 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+}
+
+
+class MainViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+        return MainViewModel(application) as T
+    }
 
 }
+
 
 class BooruRepository(booru: Booru) {
     private val booruApi = when (booru.type) {

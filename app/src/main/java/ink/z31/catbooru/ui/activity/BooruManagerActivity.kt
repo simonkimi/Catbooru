@@ -20,6 +20,7 @@ class BooruManagerActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_booru_manager)
         // 设置标题栏
+        this.booruManagerToolbar.setTitle(R.string.booruManager)
         setSupportActionBar(this.booruManagerToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         this.booruManagerToolbar.setOnMenuItemClickListener { item ->
@@ -31,6 +32,9 @@ class BooruManagerActivity : AppCompatActivity() {
                 }
             }
             true
+        }
+        this.booruManagerToolbar.setNavigationOnClickListener {
+            finish()
         }
         // 加载数据
         mainViewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)

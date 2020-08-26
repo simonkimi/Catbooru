@@ -109,6 +109,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
 
 class MainViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
+    @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         return MainViewModel(application) as T
     }

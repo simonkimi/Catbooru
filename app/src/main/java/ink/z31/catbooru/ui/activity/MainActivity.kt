@@ -19,6 +19,7 @@ import com.mikepenz.materialdrawer.Drawer
 import ink.z31.catbooru.R
 import ink.z31.catbooru.ui.adapter.TagAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
+import ink.z31.catbooru.ui.viewModel.MainViewModelFactory
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        viewModel = ViewModelProvider(this, MainViewModelFactory(application)).get(MainViewModel::class.java)
         // 侧滑tag
         val toolbar = this.tagToolBar
         toolbar.title = this.getString(R.string.quickSearch)

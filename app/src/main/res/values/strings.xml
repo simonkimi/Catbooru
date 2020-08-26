@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Catbooru</string>
-    <string name="head_profile_manage">管理网站</string>
+    <string name="head_profile_manage">管理Booru网站</string>
     <string name="preview">预览</string>
     <string name="quickSearch">快速搜索</string>
 
@@ -12,6 +12,7 @@
     <string name="add">添加</string>
     <string name="save">保存</string>
     <string name="addBooru">添加Booru</string>
+    <string name="booruManager">Booru管理</string>
 
 
     <string name="booruName">Booru名称</string>

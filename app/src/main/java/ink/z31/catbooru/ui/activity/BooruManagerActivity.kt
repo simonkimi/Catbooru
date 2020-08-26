@@ -25,7 +25,8 @@ class BooruManagerActivity : AppCompatActivity() {
         this.booruManagerToolbar.setOnMenuItemClickListener { item ->
             when(item.itemId) {
                 R.id.manager_add -> {
-                    val intent = Intent(this, AddBooruActivity::class.java)
+                    val intent = Intent(this, SettingActivity::class.java)
+                    intent.putExtra("target", SettingActivityTarget.ADD_BOORU.value)
                     startActivity(intent)
                 }
             }

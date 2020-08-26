@@ -11,6 +11,7 @@
 
     <string name="add">添加</string>
     <string name="save">保存</string>
+    <string name="addBooru">添加Booru</string>
 
 
     <string name="booruName">Booru名称</string>

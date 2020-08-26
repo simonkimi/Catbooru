@@ -66,14 +66,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             progressBarVis.value = true
             try {
-                booruPostList.value = mutableListOf()
                 val newSearchList = booruRepository.newSearch(tags)
-                val newList = mutableListOf<BooruPost>()
-                newList.addAll(newSearchList)
-                booruPostList.value = newList
-                if (booruPostEnd.value == true) {
-                    booruPostEnd.value = false
-                }
+                booruPostList.value = newSearchList.toMutableList()
+                booruPostEnd.value = false
             } catch (e: BooruPostEnd) {
                 Log.i(TAG, "加载界面, 已经到最后一面了")
                 booruPostEnd.value = true
@@ -96,9 +91,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val newList = (booruPostList.value ?: mutableListOf())
                 newList.addAll(data)
                 booruPostList.value = newList
-                if (booruPostEnd.value!!) {
-                    booruPostEnd.value = false
-                }
+                booruPostEnd.value = false
             } catch (e: BooruPostEnd) {
                 Log.i(TAG, "加载界面, 已经到最后一面了")
                 booruPostEnd.value = true

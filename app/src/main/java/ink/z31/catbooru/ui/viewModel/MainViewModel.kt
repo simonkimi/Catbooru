@@ -12,18 +12,19 @@ import ink.z31.catbooru.data.network.BooruNetwork
 import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
+import ink.z31.catbooru.util.AppUtil
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
 private const val TAG = "MainViewModel"
 
-class MainViewModel(application: Application) : AndroidViewModel(application) {
-    private val booruDao = AppDatabase.getDatabase(getApplication()).booruDao()
+class MainViewModel : ViewModel() {
+
 
     val booruPostList = MutableLiveData<MutableList<BooruPost>>()  // 缩略图列表
     val booruPostEnd = MutableLiveData<Boolean>()  // 是否到最后一面
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
-    val booruList = MutableLiveData<MutableList<Booru>>() // booru列表
 
 
     private lateinit var booruRepository: BooruRepository
@@ -31,55 +32,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         booruPostList.value = mutableListOf()
         booruPostEnd.value = false
-
-
-        val booru =
-            Booru(
-                name = "Moebooru",
-                host = "https://gelbooru.com/",
-                type = BooruType.GELBOORU.value
-            )
-        launchNewBooru(booru)
-
-        viewModelScope.launch {
-            booruList.value = getBooru()
-        }
     }
 
-    suspend fun getBooru(): MutableList<Booru> {
-        return booruDao.getAllBooru().toMutableList()
+    override fun onCleared() {
+        Log.i(TAG, "MainViewModel已被销毁")
     }
+
 
     /**
-     * 创建新的Booru引擎
+     * 发起一个新的Booru搜索
      */
-    fun launchNewBooru(booru: Booru) {
-        this.booruRepository = BooruRepository(booru)
-        this.launchNewSearch("")
+    fun launchNewBooruAsync(booru: Booru) {
+        viewModelScope.launch {
+            launchNewBooru(booru)
+        }
     }
 
 
     /**
      * 发起一次新的搜索
      */
-    fun launchNewSearch(tags: String) {
+    fun launchNewSearchAsync(tags: String) {
         viewModelScope.launch {
-            progressBarVis.value = true
-            try {
-                val newSearchList = booruRepository.newSearch(tags)
-                booruPostList.value = newSearchList.toMutableList()
-                booruPostEnd.value = false
-            } catch (e: BooruPostEnd) {
-                Log.i(TAG, "加载界面, 已经到最后一面了")
-                booruPostEnd.value = true
-            } catch (e: Exception) {
-                Log.e(TAG, "加载页面发生错误${e.stackTrace}")
-            } finally {
-                progressBarVis.value = false
-            }
-
+            launchNewSearch(tags)
         }
     }
+
 
     /**
      * 加载下一面
@@ -98,15 +76,28 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
-}
 
 
-class MainViewModelFactory(private val application: Application) : ViewModelProvider.Factory {
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return MainViewModel(application) as T
+    private suspend fun launchNewBooru(booru: Booru) {
+        this.booruRepository = BooruRepository(booru)
+        this.launchNewSearch("")
     }
 
+    private suspend fun launchNewSearch(tags: String) {
+        progressBarVis.value = true
+        try {
+            val newSearchList = booruRepository.newSearch(tags)
+            booruPostList.value = newSearchList.toMutableList()
+            booruPostEnd.value = false
+        } catch (e: BooruPostEnd) {
+            Log.i(TAG, "加载界面, 已经到最后一面了")
+            booruPostEnd.value = true
+        } catch (e: Exception) {
+            Log.e(TAG, "加载页面发生错误${e}")
+        } finally {
+            progressBarVis.value = false
+        }
+    }
 }
 
 
@@ -136,11 +127,7 @@ class BooruPostList(private val api: BooruNetwork, private val tags: String) {
     private val booruLimit = 50
 
     suspend fun getNextPage(): List<BooruPost> {
-        val data = try {
-            this.api.postsList(booruLimit, booruPage, tags)
-        } catch (e: Exception) {
-            throw e
-        }
+        val data = this.api.postsList(booruLimit, booruPage, tags)
         booruPage += 1
         return data
     }

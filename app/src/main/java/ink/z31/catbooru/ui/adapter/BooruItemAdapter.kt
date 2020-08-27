@@ -9,10 +9,10 @@ import ink.z31.catbooru.data.database.BooruType
 
 
 class BooruItemAdapter(data: MutableList<Booru>) :
-    BaseQuickAdapter<Booru, BaseViewHolder>(R.layout.item_booru_manager, data),
+    BaseQuickAdapter<Booru, BaseViewHolder>(R.layout.item_booru_manager, data.toMutableList()),
     DraggableModule {
     override fun convert(holder: BaseViewHolder, item: Booru) {
-        holder.setText(R.id.booru_item_title, item.name)
+        holder.setText(R.id.booru_item_title, item.title)
         holder.setText(R.id.booru_item_host, item.host)
         holder.setText(
             R.id.booru_item_type,
@@ -20,8 +20,9 @@ class BooruItemAdapter(data: MutableList<Booru>) :
         )
     }
 
+
     fun setData(data: MutableList<Booru>) {
-        this.data = data
+        this.data = data.toMutableList()
     }
 
 }

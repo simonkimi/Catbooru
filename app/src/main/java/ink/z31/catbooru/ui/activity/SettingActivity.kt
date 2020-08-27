@@ -2,25 +2,19 @@ package ink.z31.catbooru.ui.activity
 
 import android.os.Bundle
 import android.view.Menu
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
-import androidx.preference.DropDownPreference
-import androidx.preference.EditTextPreference
-import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
 import ink.z31.catbooru.R
 import ink.z31.catbooru.ui.fragment.AddBooruFragment
 import kotlinx.android.synthetic.main.settings_activity.*
 
 
-enum class SettingActivityTarget(val value: Int) {
-    ADD_BOORU(0)
-}
-
-
 class SettingActivity : AppCompatActivity() {
+
+    enum class Target(val value: Int) {
+        ADD_BOORU(0)
+    }
+
     lateinit var fragment: ISettingFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +22,7 @@ class SettingActivity : AppCompatActivity() {
         setContentView(R.layout.settings_activity)
 
         fragment = when (intent.getIntExtra("target", 0)) {
-            SettingActivityTarget.ADD_BOORU.value -> {
+            Target.ADD_BOORU.value -> {
                 this.booruSettingToolbar.setTitle(R.string.addBooru)
                 AddBooruFragment(this.booruSettingToolbar)
             }

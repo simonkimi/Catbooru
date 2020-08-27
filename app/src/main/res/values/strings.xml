@@ -13,6 +13,7 @@
     <string name="save">保存</string>
     <string name="addBooru">添加Booru</string>
     <string name="booruManager">Booru管理</string>
+    <string name="saveSucceeded">保存成功</string>
 
 
     <string name="booruName">Booru名称</string>

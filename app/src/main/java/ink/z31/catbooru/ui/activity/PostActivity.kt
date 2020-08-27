@@ -2,9 +2,7 @@ package ink.z31.catbooru.ui.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.Menu
-import android.view.MenuItem
 import android.widget.Toast
 import com.davemorrissey.labs.subscaleview.ImageSource
 import ink.z31.catbooru.R

@@ -34,7 +34,7 @@ enum class BooruType(val value: Int) : IBooruType {
 
 @Entity
 data class Booru(
-    var name: String,
+    var title: String,
     var host: String,
     var type: Int
 ) {

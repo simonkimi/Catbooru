@@ -1,9 +1,7 @@
 package ink.z31.catbooru.ui.viewModel
 
-import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
-import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.Booru
 import ink.z31.catbooru.data.database.BooruType
 import ink.z31.catbooru.data.model.base.BooruPost
@@ -12,8 +10,6 @@ import ink.z31.catbooru.data.network.BooruNetwork
 import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
-import ink.z31.catbooru.util.AppUtil
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.lang.Exception
 
@@ -94,6 +90,7 @@ class MainViewModel : ViewModel() {
             booruPostEnd.value = true
         } catch (e: Exception) {
             Log.e(TAG, "加载页面发生错误${e}")
+            e.printStackTrace()
         } finally {
             progressBarVis.value = false
         }

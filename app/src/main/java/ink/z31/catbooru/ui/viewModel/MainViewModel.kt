@@ -2,6 +2,7 @@ package ink.z31.catbooru.ui.viewModel
 
 import android.util.Log
 import androidx.lifecycle.*
+import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.Booru
 import ink.z31.catbooru.data.database.BooruType
 import ink.z31.catbooru.data.model.base.BooruPost
@@ -10,17 +11,23 @@ import ink.z31.catbooru.data.network.BooruNetwork
 import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
+import ink.z31.catbooru.util.AppUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.lang.Exception
 
 private const val TAG = "MainViewModel"
 
 class MainViewModel : ViewModel() {
 
-
     val booruPostList = MutableLiveData<MutableList<BooruPost>>()  // 缩略图列表
     val booruPostEnd = MutableLiveData<Boolean>()  // 是否到最后一面
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
+    val booruList = MutableLiveData<List<Booru>>() // Booru列表
+
+    val booruListDao = AppDatabase.getDatabase(AppUtil.context).booruDao()
 
 
     private lateinit var booruRepository: BooruRepository
@@ -28,10 +35,37 @@ class MainViewModel : ViewModel() {
     init {
         booruPostList.value = mutableListOf()
         booruPostEnd.value = false
+        viewModelScope.launch {
+            initBooru()
+        }
     }
 
     override fun onCleared() {
         Log.i(TAG, "MainViewModel已被销毁")
+    }
+
+    fun getAllBooruAsync() {
+        viewModelScope.launch {
+            booruList.value = booruListDao.getAllBooru()
+        }
+    }
+
+    private suspend fun initBooru() {
+        var list = booruListDao.getAllBooru()
+        val booru = if (list.isEmpty()) {
+            val booru = Booru(
+                title = "Gelbooru",
+                host = "https://gelbooru.com",
+                type = BooruType.GELBOORU.value
+            )
+            booruListDao.insertBooru(booru)
+            list = booruListDao.getAllBooru()
+            booru
+        } else {
+            list[0]
+        }
+        booruList.value = list
+        launchNewBooru(booru)
     }
 
 

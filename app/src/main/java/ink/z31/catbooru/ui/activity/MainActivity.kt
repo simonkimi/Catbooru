@@ -1,6 +1,7 @@
 package ink.z31.catbooru.ui.activity
 
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -17,10 +18,16 @@ import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.Drawer
 import ink.z31.catbooru.R
+import ink.z31.catbooru.data.database.AppDatabase
+import ink.z31.catbooru.data.database.dao.BooruDao
 import ink.z31.catbooru.ui.adapter.TagAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
+import ink.z31.catbooru.util.EventMsg
+import ink.z31.catbooru.util.EventType
 import kotlinx.android.synthetic.main.activity_main.*
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 
 private const val TAG = "MainActivity"
@@ -31,6 +38,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private lateinit var headerResult: AccountHeader
     private lateinit var viewModel: MainViewModel
     private lateinit var mSearchBarMover: SearchBarMover
+    private lateinit var booruListDao: BooruDao
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -50,9 +58,17 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 profileSetting(this@MainActivity.getString(R.string.head_profile_manage)) {
                     iicon = GoogleMaterial.Icon.gmd_settings
                     identifier = 100_001
+                    onClick { _ ->
+                        val intent = Intent(this@MainActivity, SettingActivity::class.java)
+                        intent.putExtra("target", SettingActivity.Target.ADD_BOORU.value)
+                        startActivity(intent)
+                        false
+                    }
                 }
             }
         }
+
+
 
         // 初始化搜索条
         this.searchBar.setOnSearchActionListener(object : MaterialSearchBar.OnSearchActionListener {
@@ -79,6 +95,13 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         )
         this.searchBar.elevation = 5F
         initPreview()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onBooruChanged(msg: EventMsg) {
+        if (msg.type == EventType.BOORU_CHANGE) {
+            viewModel.getAllBooruAsync()
+        }
     }
 
     /**

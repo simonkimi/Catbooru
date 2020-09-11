@@ -1,5 +1,6 @@
 package ink.z31.catbooru.ui.fragment
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
@@ -28,14 +29,27 @@ class AddBooruFragment(private val toolbar: Toolbar) :
         val booruName = findPreference<EditTextPreference>("booru_name")
         val booruHost = findPreference<EditTextPreference>("booru_host")
         val booruType = findPreference<DropDownPreference>("booru_type")
-        val onEditPreferenceChangeListener =
-            Preference.OnPreferenceChangeListener { preference, newValue ->
-                preference.summary = newValue as String
-                preference.setDefaultValue(newValue)
-                true
+
+        booruName?.setOnPreferenceChangeListener { preference, newValue ->
+            preference.summary = newValue as String
+            preference.setDefaultValue(newValue)
+            true
+        }
+        booruHost?.setOnPreferenceChangeListener { preference, newValue ->
+            val host = newValue as String
+            if (host.isUrl()) {
+                preference.setDefaultValue(host)
+                return@setOnPreferenceChangeListener true
             }
-        booruName?.onPreferenceChangeListener = onEditPreferenceChangeListener
-        booruHost?.onPreferenceChangeListener = onEditPreferenceChangeListener
+            AlertDialog.Builder(this.activity)
+                .setTitle(R.string.error)
+                .setMessage(R.string.booruHostNotHttp)
+                .setPositiveButton(R.string.yes) { var1, _ -> var1.cancel() }
+                .show()
+            false
+        }
+
+
         booruType?.setOnPreferenceChangeListener { preference, newValue ->
             val index = (newValue as String).toInt()
             preference.summary = resources.getStringArray(R.array.booruType)[index]
@@ -45,30 +59,25 @@ class AddBooruFragment(private val toolbar: Toolbar) :
         toolbar.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.booru_save -> {
-                    GlobalScope.launch {
-                        withContext(Dispatchers.IO) {
-                            // 保存数据
-                            val dao = AppDatabase.getDatabase(requireContext()).booruDao()
-                            val booru = Booru(
-                                title = booruName!!.text,
-                                type = booruType!!.value.toInt(),
-                                host = booruHost!!.text,
-                                favicon = ""
-                            )
-                            dao.insertBooru(booru)
-                            EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
-                            // 获取封面
-                            booru.favicon = NetUtil.getFavicon(booruHost.text)
-                            dao.updateBooru(booru)
-                            EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
-                        }
+                    val exception = createBooru(
+                        title = booruName!!.text,
+                        type = booruType!!.value.toInt(),
+                        host = booruHost!!.text)
+                    if (exception == null) {
+                        Toast.makeText(
+                            AppUtil.context,
+                            getText(R.string.saveSucceeded),
+                            Toast.LENGTH_LONG
+                        ).show()
+                        activity?.finish()
+                    } else {
+                        AlertDialog.Builder(this.activity)
+                            .setTitle(R.string.error)
+                            .setMessage(exception)
+                            .setPositiveButton(R.string.yes) { var1, _ -> var1.cancel() }
+                            .show()
                     }
-                    Toast.makeText(
-                        AppUtil.context,
-                        getText(R.string.saveSucceeded),
-                        Toast.LENGTH_LONG
-                    ).show()
-                    activity?.finish()
+
                 }
             }
             true
@@ -82,5 +91,29 @@ class AddBooruFragment(private val toolbar: Toolbar) :
         return R.menu.add_booru
     }
 
-
+    private fun createBooru(title: String, type: Int, host: String): String? {
+        if (!host.isUrl()) {
+            return getString(R.string.booruHostNotHttp)
+        }
+        val verifyHost = "${title}${if (host.endsWith("/")) "" else "/"}"
+        val booru = Booru(
+            title = title,
+            type = type,
+            host = verifyHost,
+            favicon = ""
+        )
+        GlobalScope.launch {
+            withContext(Dispatchers.IO) {
+                // 保存数据
+                val dao = AppDatabase.getDatabase(requireContext()).booruDao()
+                dao.insertBooru(booru)
+                EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
+                // 获取封面
+                booru.favicon = NetUtil.getFavicon(verifyHost)
+                dao.updateBooru(booru)
+                EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
+            }
+        }
+        return null
+    }
 }

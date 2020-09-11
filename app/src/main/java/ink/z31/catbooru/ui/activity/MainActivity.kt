@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
 import co.zsmb.materialdrawerkt.draweritems.profile.profileSetting
+import com.google.android.material.snackbar.Snackbar
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
@@ -35,6 +36,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
+import java.util.*
 
 
 private const val TAG = "MainActivity"
@@ -44,9 +46,10 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private lateinit var materialDrawer: Drawer
     private lateinit var headerResult: AccountHeader
     private lateinit var viewModel: MainViewModel
-    private lateinit var mSearchBarMover: SearchBarMover
     private lateinit var booruListDao: BooruDao
     private lateinit var profileSettingItem: ProfileSettingDrawerItem
+    private var lastPressBack = 0L
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -104,7 +107,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 viewModel.launchNewSearchAsync(text.toString())
             }
         })
-        mSearchBarMover = SearchBarMover(
+        SearchBarMover(
             this,
             this.searchBar,
             this.previewRecyclerView
@@ -141,6 +144,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
             headerResult.addProfile(profileSettingItem, headerResult.profiles?.size ?: 0)
         })
+        EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
     }
 
     /**
@@ -179,7 +183,6 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 View.INVISIBLE
             }
         })
-        EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
         this.previewRecyclerView.adapter = adapter
     }
 
@@ -197,8 +200,18 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         EventBus.getDefault().unregister(this)
+        super.onDestroy()
+    }
+
+    override fun onBackPressed() {
+        val now = Date().time
+        if (now - lastPressBack > 1000) {
+            lastPressBack = now
+            Snackbar.make(this.main_root, R.string.pressBackAgain, Snackbar.LENGTH_SHORT).show()
+        } else {
+            super.onBackPressed()
+        }
     }
 }
 

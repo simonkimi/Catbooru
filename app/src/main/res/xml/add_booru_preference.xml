@@ -4,7 +4,7 @@
     <PreferenceCategory app:title="基础信息">
         <EditTextPreference
             android:key="booru_name"
-            android:defaultValue="Example"
+            android:defaultValue=""
             android:summary="Booru昵称"
             android:selectAllOnFocus="true"
             android:singleLine="true"
@@ -14,7 +14,7 @@
         <EditTextPreference
             android:key="booru_host"
             android:icon="@drawable/ic_baseline_http_24"
-            android:defaultValue="Default value"
+            android:defaultValue="https://"
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:summary="@string/booruHostSummary"

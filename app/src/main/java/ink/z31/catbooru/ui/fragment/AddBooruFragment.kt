@@ -39,14 +39,11 @@ class AddBooruFragment(private val toolbar: Toolbar) :
             val host = newValue as String
             if (host.isUrl()) {
                 preference.setDefaultValue(host)
-                return@setOnPreferenceChangeListener true
+                preference.summary = host
+            } else {
+                Toast.makeText(this.activity, R.string.booruHostNotHttp, Toast.LENGTH_SHORT).show()
             }
-            AlertDialog.Builder(this.activity)
-                .setTitle(R.string.error)
-                .setMessage(R.string.booruHostNotHttp)
-                .setPositiveButton(R.string.yes) { var1, _ -> var1.cancel() }
-                .show()
-            false
+            true
         }
 
 
@@ -95,7 +92,7 @@ class AddBooruFragment(private val toolbar: Toolbar) :
         if (!host.isUrl()) {
             return getString(R.string.booruHostNotHttp)
         }
-        val verifyHost = "${title}${if (host.endsWith("/")) "" else "/"}"
+        val verifyHost = "${host}${if (host.endsWith("/")) "" else "/"}"
         val booru = Booru(
             title = title,
             type = type,

@@ -4,6 +4,7 @@ package ink.z31.catbooru.ui.activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
-import co.zsmb.materialdrawerkt.draweritems.profile.profileSetting
 import com.google.android.material.snackbar.Snackbar
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
@@ -132,11 +132,13 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                     .withNameShown(true)
                     .withEmail(it.host)
                     .withIdentifier(it.id)
-                println(it.favicon)
                 if (it.favicon.isNotEmpty()) {
                     val bytes = Base64Util.b64Decode(it.favicon.toByteArray())
                     val icon = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    p.withIcon(icon)
+                    val matrix = Matrix()
+                    matrix.setScale(6F, 6F)
+                    val newIcon = Bitmap.createBitmap(icon, 0, 0, icon.width, icon.height, matrix, true)
+                    p.withIcon(newIcon)
                 }
                 p
             }.forEach {

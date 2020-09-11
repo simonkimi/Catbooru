@@ -3,7 +3,6 @@ package ink.z31.catbooru.ui.fragment
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
-import androidx.lifecycle.ViewModelProvider
 import androidx.preference.DropDownPreference
 import androidx.preference.EditTextPreference
 import androidx.preference.Preference
@@ -12,11 +11,7 @@ import ink.z31.catbooru.R
 import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.Booru
 import ink.z31.catbooru.ui.activity.ISettingFragment
-import ink.z31.catbooru.ui.viewModel.BooruViewModel
-import ink.z31.catbooru.ui.viewModel.MainViewModel
-import ink.z31.catbooru.util.AppUtil
-import ink.z31.catbooru.util.EventMsg
-import ink.z31.catbooru.util.EventType
+import ink.z31.catbooru.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -52,17 +47,27 @@ class AddBooruFragment(private val toolbar: Toolbar) :
                 R.id.booru_save -> {
                     GlobalScope.launch {
                         withContext(Dispatchers.IO) {
+                            // 保存数据
                             val dao = AppDatabase.getDatabase(requireContext()).booruDao()
                             val booru = Booru(
                                 title = booruName!!.text,
                                 type = booruType!!.value.toInt(),
-                                host = booruHost!!.text
+                                host = booruHost!!.text,
+                                favicon = ""
                             )
                             dao.insertBooru(booru)
+                            EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
+                            // 获取封面
+                            booru.favicon = NetUtil.getFavicon(booruHost.text)
+                            dao.updateBooru(booru)
+                            EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
                         }
-                        EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
                     }
-                    Toast.makeText(AppUtil.context, getText(R.string.saveSucceeded), Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        AppUtil.context,
+                        getText(R.string.saveSucceeded),
+                        Toast.LENGTH_LONG
+                    ).show()
                     activity?.finish()
                 }
             }
@@ -76,4 +81,6 @@ class AddBooruFragment(private val toolbar: Toolbar) :
     override fun getMenuRes(): Int? {
         return R.menu.add_booru
     }
+
+
 }

@@ -2,6 +2,8 @@ package ink.z31.catbooru.ui.activity
 
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -17,15 +19,20 @@ import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.Drawer
+import com.mikepenz.materialdrawer.model.ProfileDrawerItem
+import com.mikepenz.materialdrawer.model.ProfileSettingDrawerItem
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.dao.BooruDao
 import ink.z31.catbooru.ui.adapter.TagAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
+import ink.z31.catbooru.util.Base64Util
 import ink.z31.catbooru.util.EventMsg
 import ink.z31.catbooru.util.EventType
 import kotlinx.android.synthetic.main.activity_main.*
+import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
@@ -39,13 +46,33 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private lateinit var viewModel: MainViewModel
     private lateinit var mSearchBarMover: SearchBarMover
     private lateinit var booruListDao: BooruDao
+    private lateinit var profileSettingItem: ProfileSettingDrawerItem
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        booruListDao = AppDatabase.getDatabase(this).booruDao()
+        EventBus.getDefault().register(this)
         // 侧滑tag
         val toolbar = this.tagToolBar
         toolbar.title = this.getString(R.string.quickSearch)
+        profileSettingItem = ProfileSettingDrawerItem()
+            .withName(R.string.booruManager)
+            .withIcon(GoogleMaterial.Icon.gmd_settings)
+            .withIdentifier(100_001)
+            .withOnDrawerItemClickListener(object : Drawer.OnDrawerItemClickListener {
+                override fun onItemClick(
+                    view: View?,
+                    position: Int,
+                    drawerItem: IDrawerItem<*>
+                ): Boolean {
+                    val intent = Intent(this@MainActivity, BooruManagerActivity::class.java)
+                    startActivity(intent)
+                    return false
+                }
+            })
+
+
         // 侧滑菜单
         materialDrawer = drawer {
             hasStableIds = true
@@ -55,19 +82,8 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             headerResult = accountHeader {
                 savedInstance = savedInstanceState
                 translucentStatusBar = true
-                profileSetting(this@MainActivity.getString(R.string.head_profile_manage)) {
-                    iicon = GoogleMaterial.Icon.gmd_settings
-                    identifier = 100_001
-                    onClick { _ ->
-                        val intent = Intent(this@MainActivity, SettingActivity::class.java)
-                        intent.putExtra("target", SettingActivity.Target.ADD_BOORU.value)
-                        startActivity(intent)
-                        false
-                    }
-                }
             }
         }
-
 
 
         // 初始化搜索条
@@ -95,6 +111,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         )
         this.searchBar.elevation = 5F
         initPreview()
+        initSideBar()
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -102,6 +119,28 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         if (msg.type == EventType.BOORU_CHANGE) {
             viewModel.getAllBooruAsync()
         }
+    }
+    private fun initSideBar() {
+        this.viewModel.booruList.observe(this, Observer { list ->
+            headerResult.clear()
+            list.map {
+                val p = ProfileDrawerItem()
+                    .withName(it.title)
+                    .withNameShown(true)
+                    .withEmail(it.host)
+                    .withIdentifier(it.id)
+                println(it.favicon)
+                if (it.favicon.isNotEmpty()) {
+                    val bytes = Base64Util.b64Decode(it.favicon.toByteArray())
+                    val icon = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                    p.withIcon(icon)
+                }
+                p
+            }.forEach {
+                headerResult.addProfile(it, headerResult.profiles?.size ?: 0)
+            }
+            headerResult.addProfile(profileSettingItem, headerResult.profiles?.size ?: 0)
+        })
     }
 
     /**
@@ -140,9 +179,8 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 View.INVISIBLE
             }
         })
-
+        EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
         this.previewRecyclerView.adapter = adapter
-        viewModel.launchNewSearchAsync("")
     }
 
 
@@ -156,6 +194,11 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
     override fun forceShowSearchBar(): Boolean {
         return false
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        EventBus.getDefault().unregister(this)
     }
 }
 

@@ -36,7 +36,8 @@ enum class BooruType(val value: Int) : IBooruType {
 data class Booru(
     var title: String,
     var host: String,
-    var type: Int
+    var type: Int,
+    var favicon: String
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0

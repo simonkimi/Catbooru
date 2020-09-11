@@ -12,6 +12,7 @@ import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
 import ink.z31.catbooru.util.AppUtil
+import ink.z31.catbooru.util.NetUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -26,8 +27,9 @@ class MainViewModel : ViewModel() {
     val booruPostEnd = MutableLiveData<Boolean>()  // 是否到最后一面
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
     val booruList = MutableLiveData<List<Booru>>() // Booru列表
+    private var searchTag = ""
 
-    val booruListDao = AppDatabase.getDatabase(AppUtil.context).booruDao()
+    private val booruListDao = AppDatabase.getDatabase(AppUtil.context).booruDao()
 
 
     private lateinit var booruRepository: BooruRepository
@@ -56,7 +58,8 @@ class MainViewModel : ViewModel() {
             val booru = Booru(
                 title = "Gelbooru",
                 host = "https://gelbooru.com",
-                type = BooruType.GELBOORU.value
+                type = BooruType.GELBOORU.value,
+                favicon = ""
             )
             booruListDao.insertBooru(booru)
             list = booruListDao.getAllBooru()
@@ -109,12 +112,23 @@ class MainViewModel : ViewModel() {
 
 
     private suspend fun launchNewBooru(booru: Booru) {
+        withContext(Dispatchers.IO) {
+            if (booru.favicon.isEmpty()) {
+                val icon = NetUtil.getFavicon(booru.host)
+                if (icon.isNotEmpty()) {
+                    booru.favicon = icon
+                }
+                booruListDao.updateBooru(booru)
+
+            }
+        }
         this.booruRepository = BooruRepository(booru)
-        this.launchNewSearch("")
+        this.launchNewSearch(searchTag)
     }
 
     private suspend fun launchNewSearch(tags: String) {
         progressBarVis.value = true
+        searchTag = tags
         try {
             val newSearchList = booruRepository.newSearch(tags)
             booruPostList.value = newSearchList.toMutableList()

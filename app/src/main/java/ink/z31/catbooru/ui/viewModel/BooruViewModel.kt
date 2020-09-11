@@ -67,7 +67,8 @@ class BooruViewModel : ViewModel() {
         val booru = Booru(
             title = title,
             host = host,
-            type = type
+            type = type,
+            favicon = ""
         )
         booruDao.insertBooru(booru)
     }

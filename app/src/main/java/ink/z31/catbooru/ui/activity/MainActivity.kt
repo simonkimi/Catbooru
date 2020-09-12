@@ -8,6 +8,7 @@ import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -16,6 +17,7 @@ import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
@@ -26,9 +28,11 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.dao.BooruDao
-import ink.z31.catbooru.ui.adapter.TagAdapter
+import ink.z31.catbooru.data.model.base.BooruPost
+import ink.z31.catbooru.ui.adapter.PreviewViewModel
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
+import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.Base64Util
 import ink.z31.catbooru.util.EventMsg
 import ink.z31.catbooru.util.EventType
@@ -123,6 +127,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             viewModel.getAllBooruAsync()
         }
     }
+
     private fun initSideBar() {
         this.viewModel.booruList.observe(this, Observer { list ->
             headerResult.clear()
@@ -132,12 +137,24 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                     .withNameShown(true)
                     .withEmail(it.host)
                     .withIdentifier(it.id)
+                    .withOnDrawerItemClickListener(object : Drawer.OnDrawerItemClickListener {
+                        override fun onItemClick(
+                            view: View?,
+                            position: Int,
+                            drawerItem: IDrawerItem<*>
+                        ): Boolean {
+                            Toast.makeText(AppUtil.context, "$position", Toast.LENGTH_SHORT).show()
+                            return false
+                        }
+                    })
+
                 if (it.favicon.isNotEmpty()) {
                     val bytes = Base64Util.b64Decode(it.favicon.toByteArray())
                     val icon = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                     val matrix = Matrix()
                     matrix.setScale(6F, 6F)
-                    val newIcon = Bitmap.createBitmap(icon, 0, 0, icon.width, icon.height, matrix, true)
+                    val newIcon =
+                        Bitmap.createBitmap(icon, 0, 0, icon.width, icon.height, matrix, true)
                     p.withIcon(newIcon)
                 }
                 p
@@ -155,7 +172,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private fun initPreview() {
         val layoutManager = StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)
         this.previewRecyclerView.layoutManager = layoutManager
-        val adapter = TagAdapter(mutableListOf())
+        val adapter = PreviewViewModel(mutableListOf())
         // 上拉加载
         adapter.loadMoreModule.setOnLoadMoreListener {
             Log.i(TAG, "加载下一面")
@@ -185,6 +202,14 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 View.INVISIBLE
             }
         })
+        //  详情界面
+        adapter.setOnItemClickListener { _, _, position ->
+            val booruPost = adapter.data[position]
+            val booruJson = Gson().toJson(booruPost)
+            val intent = Intent(this, PostActivity::class.java)
+            intent.putExtra("booruJson", booruJson)
+            startActivity(intent)
+        }
         this.previewRecyclerView.adapter = adapter
     }
 

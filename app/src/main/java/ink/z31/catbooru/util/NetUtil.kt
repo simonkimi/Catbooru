@@ -12,7 +12,6 @@ object NetUtil {
     suspend fun get(url: String): ByteArray {
         return suspendCoroutine { continuation ->
             val client = OkHttpClient()
-            System.out.println(url)
             val request = Request.Builder()
                 .url(url)
                 .build()

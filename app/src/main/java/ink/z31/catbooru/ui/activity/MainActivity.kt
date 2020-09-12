@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         profileSettingItem = ProfileSettingDrawerItem()
             .withName(R.string.booruManager)
             .withIcon(GoogleMaterial.Icon.gmd_settings)
-            .withIdentifier(100_001)
+            .withIdentifier(999_999_999)
             .withOnDrawerItemClickListener(object : Drawer.OnDrawerItemClickListener {
                 override fun onItemClick(
                     view: View?,
@@ -86,7 +86,19 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             headerResult = accountHeader {
                 savedInstance = savedInstanceState
                 translucentStatusBar = true
+
+                onProfileChanged { _, profile, _ ->
+                    if (profile.identifier != 999_999_999.toLong()) {
+                        viewModel.launchNewBooruAsync(profile.identifier.toInt())
+                        SPUtil.set("main") {
+                            putLong("start_booru_id", profile.identifier)
+                        }
+                    }
+                    false
+                }
             }
+
+
         }
 
         initSearchBar()

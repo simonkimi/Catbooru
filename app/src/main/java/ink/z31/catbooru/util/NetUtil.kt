@@ -32,8 +32,7 @@ object NetUtil {
     }
 
     suspend fun getFavicon(host: String): String {
-        val url = "${host}${if (host.endsWith("/")) "" else "/"}"
-        val fav = get("${url}favicon.png")
+        val fav = get("${host}${if (host.endsWith("/")) "" else "/"}favicon.ico")
         return if (fav.isEmpty()) "" else String(Base64Util.b64Encode(fav))
     }
 }

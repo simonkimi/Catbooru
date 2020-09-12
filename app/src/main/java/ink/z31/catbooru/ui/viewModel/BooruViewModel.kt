@@ -8,7 +8,10 @@ import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.Booru
 import ink.z31.catbooru.data.database.BooruType
 import ink.z31.catbooru.util.AppUtil
+import ink.z31.catbooru.util.EventMsg
+import ink.z31.catbooru.util.EventType
 import kotlinx.coroutines.launch
+import org.greenrobot.eventbus.EventBus
 
 private const val TAG = "BooruViewModel"
 
@@ -50,6 +53,7 @@ class BooruViewModel : ViewModel() {
                 )
                 booruList.value = getBooruList()
             }
+            EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
         }
     }
 

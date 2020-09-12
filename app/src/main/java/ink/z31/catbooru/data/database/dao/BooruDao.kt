@@ -16,4 +16,7 @@ interface BooruDao {
 
     @Delete
     suspend fun deleteBooru(booru: Booru)
+
+    @Query("select * from Booru where id=:id")
+    suspend fun getBooru(id: Int): List<Booru>
 }

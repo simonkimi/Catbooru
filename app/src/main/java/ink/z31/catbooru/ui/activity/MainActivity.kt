@@ -32,10 +32,7 @@ import ink.z31.catbooru.data.model.base.BooruPost
 import ink.z31.catbooru.ui.adapter.PreviewViewModel
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
-import ink.z31.catbooru.util.AppUtil
-import ink.z31.catbooru.util.Base64Util
-import ink.z31.catbooru.util.EventMsg
-import ink.z31.catbooru.util.EventType
+import ink.z31.catbooru.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -92,7 +89,19 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
         }
 
+        initSearchBar()
+        initPreview()
+        initSideBar()
+    }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    fun onBooruChanged(msg: EventMsg) {
+        if (msg.type == EventType.BOORU_CHANGE) {
+            viewModel.getAllBooruAsync()
+        }
+    }
+
+    private fun initSearchBar() {
         // 初始化搜索条
         this.searchBar.setOnSearchActionListener(object : MaterialSearchBar.OnSearchActionListener {
             override fun onButtonClicked(buttonCode: Int) {
@@ -111,26 +120,19 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 viewModel.launchNewSearchAsync(text.toString())
             }
         })
+        this.searchBar.lastSuggestions
         SearchBarMover(
             this,
             this.searchBar,
             this.previewRecyclerView
         )
         this.searchBar.elevation = 5F
-        initPreview()
-        initSideBar()
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onBooruChanged(msg: EventMsg) {
-        if (msg.type == EventType.BOORU_CHANGE) {
-            viewModel.getAllBooruAsync()
-        }
     }
 
     private fun initSideBar() {
         this.viewModel.booruList.observe(this, Observer { list ->
             headerResult.clear()
+            var activityProfile: ProfileDrawerItem? = null
             list.map {
                 val p = ProfileDrawerItem()
                     .withName(it.title)
@@ -143,16 +145,21 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                             position: Int,
                             drawerItem: IDrawerItem<*>
                         ): Boolean {
-                            Toast.makeText(AppUtil.context, "$position", Toast.LENGTH_SHORT).show()
+                            viewModel.launchNewBooruAsync(it.id.toInt())
+                            SPUtil.set("main") {
+                                putLong("start_booru_id", it.id)
+                            }
                             return false
                         }
                     })
-
+                if (viewModel.booru == it) {
+                    activityProfile = p
+                }
                 if (it.favicon.isNotEmpty()) {
                     val bytes = Base64Util.b64Decode(it.favicon.toByteArray())
                     val icon = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
                     val matrix = Matrix()
-                    matrix.setScale(6F, 6F)
+                    matrix.setScale(5F, 5F)
                     val newIcon =
                         Bitmap.createBitmap(icon, 0, 0, icon.width, icon.height, matrix, true)
                     p.withIcon(newIcon)
@@ -160,6 +167,9 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 p
             }.forEach {
                 headerResult.addProfile(it, headerResult.profiles?.size ?: 0)
+            }
+            activityProfile.let {
+                headerResult.activeProfile = it
             }
             headerResult.addProfile(profileSettingItem, headerResult.profiles?.size ?: 0)
         })

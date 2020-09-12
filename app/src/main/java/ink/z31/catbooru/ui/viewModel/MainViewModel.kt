@@ -13,6 +13,7 @@ import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.NetUtil
+import ink.z31.catbooru.util.SPUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -27,6 +28,8 @@ class MainViewModel : ViewModel() {
     val booruPostEnd = MutableLiveData<Boolean>()  // 是否到最后一面
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
     val booruList = MutableLiveData<List<Booru>>() // Booru列表
+    lateinit var booru: Booru
+
     private var searchTag = ""
 
     private val booruListDao = AppDatabase.getDatabase(AppUtil.context).booruDao()
@@ -35,10 +38,9 @@ class MainViewModel : ViewModel() {
     private lateinit var booruRepository: BooruRepository
 
     init {
-        booruPostList.value = mutableListOf()
-        booruPostEnd.value = false
         viewModelScope.launch {
             initBooru()
+            booruPostEnd.value = false
         }
     }
 
@@ -52,9 +54,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    private suspend fun initBooru() {
-        var list = booruListDao.getAllBooru()
-        val booru = if (list.isEmpty()) {
+    private suspend fun initDatabase(): List<Booru> {
+        val booruList = booruListDao.getAllBooru()
+        return if (booruList.isEmpty()) {
             val booru = Booru(
                 title = "Gelbooru",
                 host = "https://gelbooru.com",
@@ -62,8 +64,18 @@ class MainViewModel : ViewModel() {
                 favicon = ""
             )
             booruListDao.insertBooru(booru)
-            list = booruListDao.getAllBooru()
-            booru
+            booruListDao.getAllBooru()
+        } else {
+            booruList
+        }
+    }
+
+    private suspend fun initBooru() {
+        val list = initDatabase()
+        val defaultId = SPUtil.get("main", "start_booru_id", 0L)
+        val defaultBooru = list.filter { it.id == defaultId }
+        booru = if (defaultBooru.isNotEmpty()) {
+            defaultBooru[0]
         } else {
             list[0]
         }
@@ -77,6 +89,13 @@ class MainViewModel : ViewModel() {
      */
     fun launchNewBooruAsync(booru: Booru) {
         viewModelScope.launch {
+            launchNewBooru(booru)
+        }
+    }
+
+    fun launchNewBooruAsync(booruId: Int) {
+        viewModelScope.launch {
+            booru = booruListDao.getBooru(booruId)[0]
             launchNewBooru(booru)
         }
     }
@@ -127,6 +146,7 @@ class MainViewModel : ViewModel() {
     }
 
     private suspend fun launchNewSearch(tags: String) {
+        booruPostList.value = mutableListOf()
         progressBarVis.value = true
         searchTag = tags
         try {

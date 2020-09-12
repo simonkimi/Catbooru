@@ -3,13 +3,19 @@ package ink.z31.catbooru.ui.activity
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import com.bumptech.glide.Glide
+import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.request.transition.Transition
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
@@ -18,6 +24,7 @@ import ink.z31.catbooru.R
 import ink.z31.catbooru.data.model.base.BooruPost
 import kotlinx.android.synthetic.main.activity_post.*
 
+private const val TAG = "PostActivity"
 
 class PostActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,10 +53,11 @@ class PostActivity : AppCompatActivity() {
 
     private fun initPost(booru: BooruPost) {
         Glide.with(this)
+            .load(R.mipmap.loading)
+            .into(this.imageViewLoading)
+
+        Glide.with(this)
             .load(booru.imgURL)
-            .thumbnail(
-                Glide.with(this).load(R.mipmap.loading)
-            )
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(object : CustomViewTarget<SubsamplingScaleImageView, Drawable>(imageView) {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
@@ -59,6 +67,9 @@ class PostActivity : AppCompatActivity() {
                     resource: Drawable,
                     transition: Transition<in Drawable>?
                 ) {
+                    println("$TAG Finish")
+                    this@PostActivity.imageViewLoading.visibility = View.GONE
+                    this@PostActivity.imageView.visibility = View.VISIBLE
                     val bitmap: Bitmap = resource.toBitmap()
                     imageView.setImage(ImageSource.bitmap(bitmap))
                 }

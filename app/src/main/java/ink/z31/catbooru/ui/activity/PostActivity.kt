@@ -61,6 +61,9 @@ class PostActivity : AppCompatActivity() {
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(object : CustomViewTarget<SubsamplingScaleImageView, Drawable>(imageView) {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
+                    Glide.with(this@PostActivity)
+                        .load(R.mipmap.die)
+                        .into(this@PostActivity.imageViewLoading)
                 }
 
                 override fun onResourceReady(

@@ -30,6 +30,10 @@ class AddBooruFragment(private val toolbar: Toolbar) :
         val booruHost = findPreference<EditTextPreference>("booru_host")
         val booruType = findPreference<DropDownPreference>("booru_type")
 
+        booruName?.text = ""
+        booruHost?.text = "https://"
+        booruType?.setValueIndex(0)
+
         booruName?.setOnPreferenceChangeListener { preference, newValue ->
             preference.summary = newValue as String
             preference.setDefaultValue(newValue)

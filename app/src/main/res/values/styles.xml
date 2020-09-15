@@ -14,5 +14,5 @@
 
     <style name="postActivityTheme" parent="AppTheme">
         <item name="android:statusBarColor">@color/transparent</item>
-    </style>
+    </style>postActivityTheme
 </resources>

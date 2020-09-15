@@ -11,14 +11,14 @@ import androidx.appcompat.widget.Toolbar
 import androidx.fragment.app.Fragment
 import com.google.android.material.snackbar.Snackbar
 import ink.z31.catbooru.R
-import ink.z31.catbooru.ui.activity.ISettingFragment
+import ink.z31.catbooru.ui.activity.SettingActivity
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.DateUtil
 import kotlinx.android.synthetic.main.fragment_exception.*
 import java.io.PrintWriter
 import java.io.StringWriter
 
-class ExceptionFragment(private val toolbar: Toolbar) : Fragment(), ISettingFragment {
+class ExceptionFragment(private val toolbar: Toolbar) : Fragment(), SettingActivity.ISettingFragment {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

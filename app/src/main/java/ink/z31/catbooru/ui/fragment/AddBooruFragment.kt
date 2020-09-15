@@ -6,12 +6,11 @@ import android.widget.Toast
 import androidx.appcompat.widget.Toolbar
 import androidx.preference.DropDownPreference
 import androidx.preference.EditTextPreference
-import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.Booru
-import ink.z31.catbooru.ui.activity.ISettingFragment
+import ink.z31.catbooru.ui.activity.SettingActivity
 import ink.z31.catbooru.util.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -21,7 +20,7 @@ import org.greenrobot.eventbus.EventBus
 
 class AddBooruFragment(private val toolbar: Toolbar) :
     PreferenceFragmentCompat(),
-    ISettingFragment {
+    SettingActivity.ISettingFragment {
 
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {

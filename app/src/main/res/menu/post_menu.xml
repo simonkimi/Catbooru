@@ -3,17 +3,18 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/showInfo"
-        android:title="@string/info"
-        android:icon="@drawable/ic_baseline_info_24"
-        app:showAsAction="always"/>
-    <item
         android:id="@+id/download"
         android:title="@string/download"
-        app:showAsAction="ifRoom"
+        app:showAsAction="never"
         android:icon="@drawable/ic_baseline_cloud_download_24"/>
     <item
         android:id="@+id/openInBrowser"
         android:title="@string/openInBrowser"
+        android:icon="@drawable/ic_baseline_open_in_browser_24"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/share"
+        android:title="@string/share"
+        android:icon="@drawable/ic_baseline_share_24"
         app:showAsAction="never"/>
 </menu>

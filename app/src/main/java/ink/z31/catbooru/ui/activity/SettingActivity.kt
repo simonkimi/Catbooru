@@ -11,6 +11,9 @@ import kotlinx.android.synthetic.main.settings_activity.*
 
 
 class SettingActivity : AppCompatActivity() {
+    interface ISettingFragment {
+        fun getMenuRes(): Int?
+    }
 
     enum class Target(val value: Int) {
         ADD_BOORU(0),
@@ -55,9 +58,4 @@ class SettingActivity : AppCompatActivity() {
         return false
     }
 
-}
-
-
-interface ISettingFragment {
-    fun getMenuRes(): Int?
 }

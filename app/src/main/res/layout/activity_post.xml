@@ -7,19 +7,11 @@
     android:layout_height="match_parent"
     tools:context=".ui.activity.PostActivity">
 
-    <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
-        android:id="@+id/imageView"
-        android:background="#000000"
-        android:visibility="invisible"
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/postFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
-    <ImageView
-        android:id="@+id/imageViewLoading"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="visible"
-        android:background="#000000"
-        android:contentDescription="@string/loading" />
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -34,5 +26,4 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"/>
     </com.google.android.material.appbar.AppBarLayout>
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -22,11 +22,12 @@ import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
 
-private const val TAG = "BooruManagerActivity"
 
 class BooruManagerActivity : AppCompatActivity() {
+    companion object {
+        private const val TAG = "BooruManagerActivity"
+    }
     private lateinit var booruViewModel: BooruViewModel
-
 
     override fun onDestroy() {
         super.onDestroy()

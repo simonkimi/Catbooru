@@ -1,21 +1,22 @@
 package ink.z31.catbooru.ui.adapter
 
-import android.util.Log
 import android.widget.ImageView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.chad.library.adapter.base.BaseQuickAdapter
-import com.chad.library.adapter.base.listener.OnItemClickListener
 import com.chad.library.adapter.base.module.LoadMoreModule
 import com.chad.library.adapter.base.viewholder.BaseViewHolder
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.model.base.BooruPost
 
-private const val TAG = "PreviewViewModel"
 
 class PreviewViewModel(data: MutableList<BooruPost>) :
     BaseQuickAdapter<BooruPost, BaseViewHolder>(R.layout.item_preview, data),
     LoadMoreModule {
+    companion object {
+        private const val TAG = "PreviewAdapter"
+    }
+
     fun setData(newData: MutableList<BooruPost>) {
         this.data = newData
     }

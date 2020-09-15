@@ -40,10 +40,12 @@ import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 
 
-private const val TAG = "MainActivity"
+
 
 class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
-
+    companion object {
+        private const val TAG = "MainActivity"
+    }
     private lateinit var materialDrawer: Drawer
     private lateinit var headerResult: AccountHeader
     private lateinit var viewModel: MainViewModel

@@ -13,9 +13,12 @@ import ink.z31.catbooru.util.EventType
 import kotlinx.coroutines.launch
 import org.greenrobot.eventbus.EventBus
 
-private const val TAG = "BooruViewModel"
+
 
 class BooruViewModel : ViewModel() {
+    companion object {
+        private const val TAG = "BooruViewModel"
+    }
     private val booruDao = AppDatabase.getDatabase(AppUtil.context).booruDao()
     val booruList = MutableLiveData<MutableList<Booru>>() // booru列表
 

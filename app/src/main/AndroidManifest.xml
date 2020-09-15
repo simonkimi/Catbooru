@@ -19,7 +19,8 @@
         <activity android:name=".ui.activity.BooruManagerActivity">
 
         </activity>
-        <activity android:name=".ui.activity.PostActivity" />
+        <activity android:name=".ui.activity.PostActivity"
+            android:theme="@style/postActivityTheme"/>
         <activity android:name=".ui.activity.MainActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

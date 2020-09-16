@@ -28,10 +28,6 @@ class PostDetailFragment : Fragment() {
 
     private val postViewModel: PostViewModel by activityViewModels()
 
-    override fun onStart() {
-        super.onStart()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

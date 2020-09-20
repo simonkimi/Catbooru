@@ -7,13 +7,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import ink.z31.catbooru.R
+import ink.z31.catbooru.ui.interfaces.IOpenPostDetail
 import ink.z31.catbooru.ui.viewModel.PostViewModel
 import ink.z31.catbooru.util.AppUtil
-import kotlinx.android.synthetic.main.fragment_post_preview.*
 
 
 class PostPreviewFragment : Fragment() {
@@ -36,8 +35,8 @@ class PostPreviewFragment : Fragment() {
             )
             .transition(DrawableTransitionOptions.withCrossFade())
             .into(view.findViewById(R.id.postSampleImage))
-        view.findViewById<ImageView>(R.id.postSampleImage).setOnClickListener { _ ->
-
+        view.findViewById<ImageView>(R.id.postSampleImage).setOnClickListener {
+            (activity as IOpenPostDetail).openPostDetail()
         }
         return view
     }

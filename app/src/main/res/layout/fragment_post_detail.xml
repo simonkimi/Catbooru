@@ -16,5 +16,6 @@
         android:layout_height="match_parent"
         android:visibility="visible"
         android:background="#000000"
+        android:transitionName="postImg"
         android:contentDescription="@string/loading" />
 </FrameLayout>

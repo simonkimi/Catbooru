@@ -4,21 +4,17 @@ import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.view.*
+import android.widget.ImageView
 import androidx.fragment.app.Fragment
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.drawable.toBitmap
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.Transition
 import com.davemorrissey.labs.subscaleview.ImageSource
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
 import ink.z31.catbooru.R
-import ink.z31.catbooru.data.model.base.BooruPost
 import ink.z31.catbooru.ui.viewModel.PostViewModel
-import kotlinx.android.synthetic.main.fragment_post_detail.*
 
 
 class PostDetailFragment : Fragment() {
@@ -32,9 +28,13 @@ class PostDetailFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        val view = inflater.inflate(R.layout.fragment_post_detail, container, false)
+        val imageViewLoading = view.findViewById<ImageView>(R.id.imageViewLoading)
+        val imageView = view.findViewById<SubsamplingScaleImageView>(R.id.imageView)
+
         Glide.with(this)
             .load(R.mipmap.loading)
-            .into(this.imageViewLoading)
+            .into(imageViewLoading)
 
         Glide.with(this)
             .load(postViewModel.booruPost.imgURL)
@@ -42,7 +42,7 @@ class PostDetailFragment : Fragment() {
                 override fun onLoadFailed(errorDrawable: Drawable?) {
                     Glide.with(this@PostDetailFragment)
                         .load(R.mipmap.die)
-                        .into(this@PostDetailFragment.imageViewLoading)
+                        .into(imageViewLoading)
                 }
 
                 override fun onResourceReady(
@@ -50,8 +50,8 @@ class PostDetailFragment : Fragment() {
                     transition: Transition<in Drawable>?
                 ) {
                     println("$TAG Finish")
-                    this@PostDetailFragment.imageViewLoading.visibility = View.GONE
-                    this@PostDetailFragment.imageView.visibility = View.VISIBLE
+                    imageViewLoading.visibility = View.GONE
+                    imageView.visibility = View.VISIBLE
                     val bitmap: Bitmap = resource.toBitmap()
                     imageView.setImage(ImageSource.bitmap(bitmap))
                 }
@@ -61,6 +61,7 @@ class PostDetailFragment : Fragment() {
                 }
 
             })
-        return inflater.inflate(R.layout.fragment_post_detail, container, false)
+        return view
     }
+
 }

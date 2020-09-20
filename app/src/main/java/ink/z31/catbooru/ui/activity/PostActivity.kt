@@ -1,24 +1,23 @@
 package ink.z31.catbooru.ui.activity
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.Menu
-import android.view.View
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
-import androidx.core.view.marginTop
 import androidx.lifecycle.ViewModelProvider
 import com.google.gson.Gson
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.model.base.BooruPost
+import ink.z31.catbooru.ui.fragment.PostDetailFragment
 import ink.z31.catbooru.ui.fragment.PostPreviewFragment
+import ink.z31.catbooru.ui.interfaces.IOpenPostDetail
 import ink.z31.catbooru.ui.viewModel.PostViewModel
-import ink.z31.catbooru.util.ViewUtils
 import kotlinx.android.synthetic.main.activity_post.*
 
 
-class PostActivity : AppCompatActivity() {
+class PostActivity : IOpenPostDetail, AppCompatActivity() {
     companion object {
         private const val TAG = "PostActivity"
     }
@@ -45,16 +44,32 @@ class PostActivity : AppCompatActivity() {
         this.postToolbar.fitsSystemWindows = true
         setSupportActionBar(this.postToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        // 初始化Fragment
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.postFragment, PostPreviewFragment())
-            .commit()
     }
 
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.post_menu, menu)
+        return true
+    }
+
+    override fun openPostDetail() {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.postFragment, PostDetailFragment())
+            .addToBackStack(null)
+            .commit()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            android.R.id.home -> {
+                if (supportFragmentManager.backStackEntryCount > 0) {
+                    supportFragmentManager.popBackStack()
+                } else {
+                    finish()
+                }
+            }
+        }
         return true
     }
 }

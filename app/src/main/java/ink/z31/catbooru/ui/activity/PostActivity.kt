@@ -1,5 +1,6 @@
 package ink.z31.catbooru.ui.activity
 
+import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -11,17 +12,12 @@ import com.google.gson.Gson
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.model.base.BooruPost
 import ink.z31.catbooru.ui.fragment.PostDetailFragment
-import ink.z31.catbooru.ui.fragment.PostPreviewFragment
 import ink.z31.catbooru.ui.interfaces.IOpenPostDetail
 import ink.z31.catbooru.ui.viewModel.PostViewModel
 import kotlinx.android.synthetic.main.activity_post.*
 
 
 class PostActivity : IOpenPostDetail, AppCompatActivity() {
-    companion object {
-        private const val TAG = "PostActivity"
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_post)
@@ -29,8 +25,7 @@ class PostActivity : IOpenPostDetail, AppCompatActivity() {
         // 初始化数据
         val booruJson: String = intent.getStringExtra("booruJson")!!
         val booruPost = Gson().fromJson(booruJson, BooruPost::class.java)
-        val viewModel = ViewModelProvider(this).get(PostViewModel::class.java)
-        viewModel.init(booruPost)
+        ViewModelProvider(this, PostViewModel.PostViewModelFactory(booruPost)).get(PostViewModel::class.java)
         // 初始化Toolbar
         this.postToolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -44,6 +39,7 @@ class PostActivity : IOpenPostDetail, AppCompatActivity() {
         this.postToolbar.fitsSystemWindows = true
         setSupportActionBar(this.postToolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
+
     }
 
 
@@ -71,5 +67,13 @@ class PostActivity : IOpenPostDetail, AppCompatActivity() {
             }
         }
         return true
+    }
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack()
+        } else {
+            supportFinishAfterTransition()
+        }
     }
 }

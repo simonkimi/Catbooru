@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
@@ -40,12 +41,11 @@ import org.greenrobot.eventbus.ThreadMode
 import java.util.*
 
 
-
-
 class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     companion object {
         private const val TAG = "MainActivity"
     }
+
     private lateinit var materialDrawer: Drawer
     private lateinit var headerResult: AccountHeader
     private lateinit var viewModel: MainViewModel
@@ -144,7 +144,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     }
 
     private fun initSideBar() {
-        this.viewModel.booruList.observe(this, Observer { list ->
+        this.viewModel.booruList.observe(this, { list ->
             headerResult.clear()
             var activityProfile: ProfileDrawerItem? = null
             list.map {
@@ -204,14 +204,14 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             adapter.loadMoreModule.loadMoreComplete()
         }
         // 预览图
-        this.viewModel.booruPostList.observe(this, Observer { booruPost ->
+        this.viewModel.booruPostList.observe(this, { booruPost ->
             booruPost?.let {
                 adapter.setData(booruPost)
                 adapter.notifyDataSetChanged()
             }
         })
         // 是否最后一面
-        this.viewModel.booruPostEnd.observe(this, Observer {
+        this.viewModel.booruPostEnd.observe(this, {
             if (it) {
                 adapter.loadMoreModule.loadMoreEnd()
             } else {
@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
         })
         // 加载进度条
-        this.viewModel.progressBarVis.observe(this, Observer {
+        this.viewModel.progressBarVis.observe(this, {
             progressBar.visibility = if (it) {
                 View.VISIBLE
             } else {
@@ -227,12 +227,17 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
         })
         //  详情界面
-        adapter.setOnItemClickListener { _, _, position ->
+        adapter.setOnItemClickListener { _, view, position ->
             val booruPost = adapter.data[position]
             val booruJson = Gson().toJson(booruPost)
             val intent = Intent(this, PostActivity::class.java)
+            val transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                this,
+                view.findViewById(R.id.previewImg),
+                "postImg"
+            )
             intent.putExtra("booruJson", booruJson)
-            startActivity(intent)
+            startActivity(intent, transition.toBundle())
         }
         this.previewRecyclerView.adapter = adapter
     }

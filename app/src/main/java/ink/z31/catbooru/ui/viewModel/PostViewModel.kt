@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import ink.z31.catbooru.data.model.base.BooruPost
 
-class PostViewModel : ViewModel() {
-    lateinit var booruPost: BooruPost
+class PostViewModel(val booruPost: BooruPost) : ViewModel() {
 
-    fun init(booruPost: BooruPost) {
-        this.booruPost = booruPost
+    class PostViewModelFactory(private val booruPost: BooruPost): ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel?> create(modelClass: Class<T>): T {
+            return PostViewModel(booruPost) as T
+        }
     }
 }

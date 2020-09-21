@@ -8,11 +8,21 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
-        <ImageView
-            android:id="@+id/postSampleImage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:transitionName="postImg"
-            android:contentDescription="@string/sample" />
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/postSampleImage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:transitionName="postImg"
+                android:contentDescription="@string/sample" />
+            <ProgressBar
+                android:id="@+id/postSampleLoading"
+                android:layout_centerVertical="true"
+                android:layout_centerHorizontal="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </RelativeLayout>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

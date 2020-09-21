@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,15 +8,23 @@
     <com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView
         android:id="@+id/imageView"
         android:background="#000000"
-        android:visibility="invisible"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-    <ImageView
-        android:id="@+id/imageViewLoading"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
         android:visibility="visible"
-        android:background="#000000"
+        android:layout_width="match_parent"
         android:transitionName="postImg"
-        android:contentDescription="@string/loading" />
-</FrameLayout>
+        android:layout_height="match_parent"/>
+    <ProgressBar
+        android:id="@+id/postDetailLoading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"/>
+    <TextView
+        android:id="@+id/postDetailException"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="30dp"
+        android:textColor="#909090"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:visibility="gone"/>
+</RelativeLayout>

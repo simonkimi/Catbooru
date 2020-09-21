@@ -125,6 +125,9 @@ class MainViewModel : ViewModel() {
             } catch (e: BooruPostEnd) {
                 Log.i(TAG, "加载界面, 已经到最后一面了")
                 booruPostEnd.value = true
+            } catch (e: Exception) {
+                Log.i(TAG, "加载界面, 已经到最后一面了")
+                booruPostEnd.value = true
             }
         }
     }

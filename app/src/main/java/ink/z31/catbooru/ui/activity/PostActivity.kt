@@ -1,6 +1,5 @@
 package ink.z31.catbooru.ui.activity
 
-import android.os.Build
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
@@ -12,12 +11,11 @@ import com.google.gson.Gson
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.model.base.BooruPost
 import ink.z31.catbooru.ui.fragment.PostDetailFragment
-import ink.z31.catbooru.ui.interfaces.IOpenPostDetail
 import ink.z31.catbooru.ui.viewModel.PostViewModel
 import kotlinx.android.synthetic.main.activity_post.*
 
 
-class PostActivity : IOpenPostDetail, AppCompatActivity() {
+class PostActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_post)
@@ -46,14 +44,6 @@ class PostActivity : IOpenPostDetail, AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         menuInflater.inflate(R.menu.post_menu, menu)
         return true
-    }
-
-    override fun openPostDetail() {
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.postFragment, PostDetailFragment())
-            .addToBackStack(null)
-            .commit()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

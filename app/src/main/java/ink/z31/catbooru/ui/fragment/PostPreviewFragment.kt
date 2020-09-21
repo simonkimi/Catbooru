@@ -1,5 +1,6 @@
 package ink.z31.catbooru.ui.fragment
 
+import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -8,6 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
+import android.widget.TextView
+import androidx.core.view.ViewCompat
 import androidx.fragment.app.activityViewModels
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.DataSource
@@ -17,13 +20,16 @@ import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.target.Target
 import ink.z31.catbooru.R
-import ink.z31.catbooru.ui.interfaces.IOpenPostDetail
 import ink.z31.catbooru.ui.viewModel.PostViewModel
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.BlurTransformation
 
 
 class PostPreviewFragment : Fragment() {
+    companion object {
+        private const val TAG = "PostPreviewFragment"
+    }
+    
     private val postViewModel: PostViewModel by activityViewModels()
 
     override fun onCreateView(
@@ -36,6 +42,7 @@ class PostPreviewFragment : Fragment() {
             screenWidth * postViewModel.booruPost.previewHeight / postViewModel.booruPost.previewWidth
         val postSampleImage = view.findViewById<ImageView>(R.id.postSampleImage)
         val postSampleLoader = view.findViewById<ProgressBar>(R.id.postSampleLoading)
+        val postException = view.findViewById<TextView>(R.id.postSampleException)
 
         Glide.with(requireActivity())
             .load(postViewModel.booruPost.sampleURL)
@@ -48,7 +55,7 @@ class PostPreviewFragment : Fragment() {
                             .load(postViewModel.booruPost.previewURL)
                     )
                     .override(screenWidth, fitHeight)
-                    .apply(RequestOptions.bitmapTransform(BlurTransformation(20, 1)))
+                    .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 1)))
             )
             .transition(DrawableTransitionOptions.withCrossFade())
             .listener(object : RequestListener<Drawable> {
@@ -59,6 +66,8 @@ class PostPreviewFragment : Fragment() {
                     isFirstResource: Boolean
                 ): Boolean {
                     postSampleLoader.visibility = View.GONE
+                    postException.visibility = View.VISIBLE
+                    postException.text = e?.message ?: "Unknown Error"
                     return false
                 }
 
@@ -76,7 +85,12 @@ class PostPreviewFragment : Fragment() {
             })
             .into(postSampleImage)
         postSampleImage.setOnClickListener {
-            (activity as IOpenPostDetail).openPostDetail()
+            parentFragmentManager
+                .beginTransaction()
+                .addSharedElement(postSampleImage, "postImg")
+                .replace(R.id.postFragment, PostDetailFragment())
+                .addToBackStack(TAG)
+                .commit()
         }
         return view
     }

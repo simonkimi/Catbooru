@@ -53,6 +53,10 @@ class PostPreviewFragment : Fragment() {
                     .thumbnail(
                         Glide.with(requireActivity())
                             .load(postViewModel.booruPost.previewURL)
+                            .thumbnail(
+                                Glide.with(requireActivity())
+                                    .load(Bitmap.createBitmap(screenWidth, fitHeight, Bitmap.Config.ARGB_8888))
+                            )
                     )
                     .override(screenWidth, fitHeight)
                     .apply(RequestOptions.bitmapTransform(BlurTransformation(25, 1)))

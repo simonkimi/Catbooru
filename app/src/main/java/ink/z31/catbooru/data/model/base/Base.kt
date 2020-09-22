@@ -11,9 +11,9 @@ enum class RATING(var value: Int) {
 
     companion object {
         fun get(index: Int): RATING {
-            val list = RATING.values().toList().filter { it.value == index }
+            val list = values().toList().filter { it.value == index }
             if (list.isEmpty()) {
-                throw Exception("非法RATING value")
+                throw Exception("illegal RATING value")
             }
             return list[0]
         }

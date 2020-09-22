@@ -43,7 +43,7 @@ class PostPreviewFragment : Fragment() {
         val postSampleImage = view.findViewById<ImageView>(R.id.postSampleImage)
         val postSampleLoader = view.findViewById<ProgressBar>(R.id.postSampleLoading)
         val postException = view.findViewById<TextView>(R.id.postSampleException)
-
+        postSampleLoader.visibility = View.VISIBLE
         Glide.with(requireActivity())
             .load(postViewModel.booruPost.sampleURL)
             .override(screenWidth, fitHeight)

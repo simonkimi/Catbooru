@@ -43,7 +43,7 @@ class PostDetailFragment : Fragment() {
         val imageView = view.findViewById<SubsamplingScaleImageView>(R.id.imageView)
         val progressBar = view.findViewById<ProgressBar>(R.id.postDetailLoading)
         val postDetailException = view.findViewById<TextView>(R.id.postDetailException)
-
+        progressBar.visibility = View.VISIBLE
         Glide.with(this)
             .load(postViewModel.booruPost.imgURL)
             .into(object : CustomViewTarget<SubsamplingScaleImageView, Drawable>(imageView) {

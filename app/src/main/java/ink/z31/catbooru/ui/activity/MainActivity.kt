@@ -111,11 +111,9 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         this.searchBar.lastSuggestions
         SearchBarMover(
             this,
-            this.searchBar,
+            this.searchBarContainer,
             this.previewRecyclerView
         )
-        this.searchBar.elevation = 5F
-
         val adaptor = viewModel.historySuggestionAdapter
         adaptor.suggestions = mutableListOf(SearchSuggestion("123"), SearchSuggestion("456"))
         this.searchBar.setCustomSuggestionAdapter(adaptor)

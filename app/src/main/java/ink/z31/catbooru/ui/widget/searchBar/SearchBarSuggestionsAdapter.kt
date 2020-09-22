@@ -9,6 +9,7 @@ import android.widget.Filter
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter
+import ink.z31.catbooru.R
 import java.util.*
 
 data class SearchSuggestion(
@@ -54,7 +55,7 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SuggestionHolder {
-        val view: View = layoutInflater.inflate(android.R.layout.simple_list_item_1, parent, false)
+        val view: View = layoutInflater.inflate(R.layout.item_list_sample, parent, false)
         return SuggestionHolder(view)
     }
 

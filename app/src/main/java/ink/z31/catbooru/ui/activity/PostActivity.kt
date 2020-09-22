@@ -21,8 +21,7 @@ class PostActivity : AppCompatActivity() {
         setContentView(R.layout.activity_post)
         WindowCompat.setDecorFitsSystemWindows(window, false)
         // 初始化数据
-        val booruJson: String = intent.getStringExtra("booruJson")!!
-        val booruPost = Gson().fromJson(booruJson, BooruPost::class.java)
+        val booruPost = intent.getParcelableExtra<BooruPost>("booruPost")!!
         ViewModelProvider(this, PostViewModel.PostViewModelFactory(booruPost)).get(PostViewModel::class.java)
         // 初始化Toolbar
         this.postToolbar.setOnMenuItemClickListener { item ->

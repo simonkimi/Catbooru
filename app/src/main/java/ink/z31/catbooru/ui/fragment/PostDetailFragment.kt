@@ -70,4 +70,6 @@ class PostDetailFragment : Fragment() {
         return view
     }
 
+
+
 }

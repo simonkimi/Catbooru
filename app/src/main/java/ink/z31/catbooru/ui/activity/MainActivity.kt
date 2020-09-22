@@ -8,10 +8,8 @@ import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
@@ -29,10 +27,10 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.dao.BooruDao
-import ink.z31.catbooru.data.model.base.BooruPost
 import ink.z31.catbooru.ui.adapter.PreviewViewModel
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
+import ink.z31.catbooru.ui.widget.searchBar.SearchSuggestion
 import ink.z31.catbooru.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
@@ -50,7 +48,21 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private lateinit var headerResult: AccountHeader
     private lateinit var viewModel: MainViewModel
     private lateinit var booruListDao: BooruDao
-    private lateinit var profileSettingItem: ProfileSettingDrawerItem
+    private var profileSettingItem = ProfileSettingDrawerItem()
+        .withName(R.string.booruManager)
+        .withIcon(GoogleMaterial.Icon.gmd_settings)
+        .withIdentifier(999_999_999)
+        .withOnDrawerItemClickListener(object : Drawer.OnDrawerItemClickListener {
+            override fun onItemClick(
+                view: View?,
+                position: Int,
+                drawerItem: IDrawerItem<*>
+            ): Boolean {
+                val intent = Intent(this@MainActivity, BooruManagerActivity::class.java)
+                startActivity(intent)
+                return false
+            }
+        })
     private var lastPressBack = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,51 +74,12 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         // 侧滑tag
         val toolbar = this.tagToolBar
         toolbar.title = this.getString(R.string.quickSearch)
-        profileSettingItem = ProfileSettingDrawerItem()
-            .withName(R.string.booruManager)
-            .withIcon(GoogleMaterial.Icon.gmd_settings)
-            .withIdentifier(999_999_999)
-            .withOnDrawerItemClickListener(object : Drawer.OnDrawerItemClickListener {
-                override fun onItemClick(
-                    view: View?,
-                    position: Int,
-                    drawerItem: IDrawerItem<*>
-                ): Boolean {
-                    val intent = Intent(this@MainActivity, BooruManagerActivity::class.java)
-                    startActivity(intent)
-                    return false
-                }
-            })
-
-
-        // 侧滑菜单
-        materialDrawer = drawer {
-            hasStableIds = true
-            savedInstance = savedInstanceState
-
-            // 用户一栏
-            headerResult = accountHeader {
-                savedInstance = savedInstanceState
-                translucentStatusBar = true
-
-                onProfileChanged { _, profile, _ ->
-                    if (profile.identifier != 999_999_999.toLong()) {
-                        viewModel.launchNewBooruAsync(profile.identifier.toInt())
-                        SPUtil.set("main") {
-                            putLong("start_booru_id", profile.identifier)
-                        }
-                    }
-                    false
-                }
-            }
-
-
-        }
 
         initSearchBar()
         initPreview()
-        initSideBar()
+        initSideBar(savedInstanceState)
     }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onBooruChanged(msg: EventMsg) {
@@ -134,6 +107,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 viewModel.launchNewSearchAsync(text.toString())
             }
         })
+
         this.searchBar.lastSuggestions
         SearchBarMover(
             this,
@@ -141,9 +115,34 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             this.previewRecyclerView
         )
         this.searchBar.elevation = 5F
+
+        val adaptor = viewModel.historySuggestionAdapter
+        adaptor.suggestions = mutableListOf(SearchSuggestion("123"), SearchSuggestion("456"))
+        this.searchBar.setCustomSuggestionAdapter(adaptor)
     }
 
-    private fun initSideBar() {
+    private fun initSideBar(savedInstanceState: Bundle?) {
+        // 侧滑菜单
+        materialDrawer = drawer {
+            hasStableIds = true
+            savedInstance = savedInstanceState
+
+            // 用户一栏
+            headerResult = accountHeader {
+                savedInstance = savedInstanceState
+                translucentStatusBar = true
+
+                onProfileChanged { _, profile, _ ->
+                    if (profile.identifier != 999_999_999.toLong()) {
+                        viewModel.launchNewBooruAsync(profile.identifier.toInt())
+                        SPUtil.set("main") {
+                            putLong("start_booru_id", profile.identifier)
+                        }
+                    }
+                    false
+                }
+            }
+        }
         this.viewModel.booruList.observe(this, { list ->
             headerResult.clear()
             var activityProfile: ProfileDrawerItem? = null
@@ -229,14 +228,13 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         //  详情界面
         adapter.setOnItemClickListener { _, view, position ->
             val booruPost = adapter.data[position]
-            val booruJson = Gson().toJson(booruPost)
             val intent = Intent(this, PostActivity::class.java)
             val transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
                 this,
                 view.findViewById(R.id.previewImg),
                 "postImg"
             )
-            intent.putExtra("booruJson", booruJson)
+            intent.putExtra("booruPost", booruPost)
             startActivity(intent, transition.toBundle())
         }
         this.previewRecyclerView.adapter = adapter
@@ -261,12 +259,16 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     }
 
     override fun onBackPressed() {
-        val now = Date().time
-        if (now - lastPressBack > 1000) {
-            lastPressBack = now
-            Snackbar.make(this.main_root, R.string.pressBackAgain, Snackbar.LENGTH_SHORT).show()
+        if (materialDrawer.isDrawerOpen) {
+            materialDrawer.closeDrawer()
         } else {
-            super.onBackPressed()
+            val now = Date().time
+            if (now - lastPressBack > 1000) {
+                lastPressBack = now
+                Snackbar.make(this.main_root, R.string.pressBackAgain, Snackbar.LENGTH_SHORT).show()
+            } else {
+                super.onBackPressed()
+            }
         }
     }
 }

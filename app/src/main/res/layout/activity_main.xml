@@ -23,13 +23,13 @@
             android:background="#FFF" />
 
         <com.mancj.materialsearchbar.MaterialSearchBar
-            android:elevation="5dp"
             android:id="@+id/searchBar"
             android:background="@color/transparent"
             style="@style/MaterialSearchBarLight"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
+            app:elevation="8dp"
             app:mt_hint="@string/app_name"
             app:mt_maxSuggestionsCount="10"
             app:mt_navIconEnabled="true"

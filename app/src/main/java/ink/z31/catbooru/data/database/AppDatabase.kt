@@ -5,10 +5,14 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import ink.z31.catbooru.data.database.dao.BooruDao
+import ink.z31.catbooru.data.database.dao.SearchHistoryDao
+import ink.z31.catbooru.data.database.dao.TagStoreDao
 
-@Database(version = 1, entities = [Booru::class])
+@Database(version = 1, entities = [Booru::class, SearchHistory::class, TagStore::class])
 abstract class AppDatabase : RoomDatabase() {
     abstract fun booruDao(): BooruDao
+    abstract fun searchHistoryDao(): SearchHistoryDao
+    abstract fun tagStoreDao(): TagStoreDao
 
     companion object {
         private var instance: AppDatabase? = null

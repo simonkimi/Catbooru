@@ -1,16 +1,19 @@
 package ink.z31.catbooru.ui.viewModel
 
 import android.util.Log
+import android.view.LayoutInflater
 import androidx.lifecycle.*
 import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.Booru
 import ink.z31.catbooru.data.database.BooruType
+import ink.z31.catbooru.data.database.SearchHistory
 import ink.z31.catbooru.data.model.base.BooruPost
 import ink.z31.catbooru.data.model.base.BooruPostEnd
 import ink.z31.catbooru.data.network.BooruNetwork
 import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
+import ink.z31.catbooru.ui.widget.searchBar.SearchBarSuggestionsAdapter
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.NetUtil
 import ink.z31.catbooru.util.SPUtil
@@ -28,11 +31,17 @@ class MainViewModel : ViewModel() {
     val booruPostEnd = MutableLiveData<Boolean>()  // 是否到最后一面
     val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
     val booruList = MutableLiveData<List<Booru>>() // Booru列表
+
     lateinit var booru: Booru
 
-    private var searchTag = ""
 
     private val booruListDao = AppDatabase.getDatabase(AppUtil.context).booruDao()
+    private val searchHistoryDao = AppDatabase.getDatabase(AppUtil.context).searchHistoryDao()
+
+    // 搜索栏
+    private var searchTag = ""
+    val historySuggestionAdapter = SearchBarSuggestionsAdapter(LayoutInflater.from(AppUtil.context))
+    val tagSuggestionAdapter = SearchBarSuggestionsAdapter(LayoutInflater.from(AppUtil.context))
 
 
     private lateinit var booruRepository: BooruRepository
@@ -83,15 +92,6 @@ class MainViewModel : ViewModel() {
         launchNewBooru(booru)
     }
 
-
-    /**
-     * 发起一个新的Booru搜索
-     */
-    fun launchNewBooruAsync(booru: Booru) {
-        viewModelScope.launch {
-            launchNewBooru(booru)
-        }
-    }
 
     fun launchNewBooruAsync(booruId: Int) {
         viewModelScope.launch {
@@ -152,6 +152,10 @@ class MainViewModel : ViewModel() {
         booruPostList.value = mutableListOf()
         progressBarVis.value = true
         searchTag = tags
+        searchHistoryDao.insert(SearchHistory(
+            data = tags,
+            createTime = System.currentTimeMillis()
+        ))
         try {
             val newSearchList = booruRepository.newSearch(tags)
             booruPostList.value = newSearchList.toMutableList()

@@ -70,18 +70,10 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun initBooruAsync(onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
+    fun initBooruAsync(onInitSuccess: () -> Unit) {
         viewModelScope.launch {
-            try {
-                initBooru()
-                onSuccess()
-            } catch (e: BooruPostEnd) {
-                Log.i(TAG, "加载界面, 已经到最后一面了")
-                onEnd()
-            } catch (e: Exception) {
-                Log.i(TAG, "加载出错 initBooruAsync ${e.message}")
-                onFail(e.message ?: "Unknown")
-            }
+            initBooru()
+            onInitSuccess()
         }
     }
 
@@ -99,19 +91,11 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun launchNewBooruAsync(booruId: Int, onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
+    fun launchNewBooruAsync(booruId: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
             booru = booruListDao.getBooru(booruId)[0]
-            try {
-                launchNewBooru(booru)
-                onSuccess()
-            } catch (e: BooruPostEnd) {
-                Log.i(TAG, "加载界面, 已经到最后一面了")
-                onEnd()
-            } catch (e: Exception) {
-                Log.i(TAG, "加载出错 launchNewBooruAsync ${e.message}")
-                onFail(e.message ?: "Unknown")
-            }
+            launchNewBooru(booru)
+            onSuccess()
         }
     }
 
@@ -119,7 +103,7 @@ class MainViewModel : ViewModel() {
     /**
      * 发起一次新的搜索
      */
-    fun launchNewSearchAsync(tags: String, onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
+    fun launchNewSearchAsync(tags: String = searchTag, onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 launchNewSearch(tags)
@@ -168,7 +152,6 @@ class MainViewModel : ViewModel() {
             }
         }
         this.booruRepository = BooruRepository(booru)
-        this.launchNewSearch(searchTag)
     }
 
     private suspend fun launchNewSearch(tags: String) {

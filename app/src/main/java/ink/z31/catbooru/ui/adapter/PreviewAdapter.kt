@@ -10,7 +10,7 @@ import ink.z31.catbooru.R
 import ink.z31.catbooru.data.model.base.BooruPost
 
 
-class PreviewViewModel(data: MutableList<BooruPost>) :
+class PreviewAdapter(data: MutableList<BooruPost>) :
     BaseQuickAdapter<BooruPost, BaseViewHolder>(R.layout.item_preview, data),
     LoadMoreModule {
     companion object {

@@ -1,12 +1,12 @@
 package ink.z31.catbooru.util
 
-import android.util.Log
+
 import okhttp3.*
 import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-private const val TAG = "NetUtil"
+
 
 object NetUtil {
     suspend fun get(url: String): ByteArray {

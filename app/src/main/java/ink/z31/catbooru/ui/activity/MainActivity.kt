@@ -8,6 +8,8 @@ import android.graphics.Matrix
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
@@ -15,8 +17,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
+import com.chad.library.adapter.base.listener.OnLoadMoreListener
 import com.google.android.material.snackbar.Snackbar
-import com.google.gson.Gson
 import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
@@ -27,11 +29,14 @@ import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem
 import ink.z31.catbooru.R
 import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.dao.BooruDao
-import ink.z31.catbooru.ui.adapter.PreviewViewModel
+import ink.z31.catbooru.ui.adapter.PreviewAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
 import ink.z31.catbooru.ui.widget.searchBar.SearchSuggestion
-import ink.z31.catbooru.util.*
+import ink.z31.catbooru.util.Base64Util
+import ink.z31.catbooru.util.EventMsg
+import ink.z31.catbooru.util.EventType
+import ink.z31.catbooru.util.SPUtil
 import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -49,19 +54,21 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private lateinit var viewModel: MainViewModel
     private lateinit var booruListDao: BooruDao
 
-    private lateinit var previewViewModel: PreviewViewModel
+
+    private lateinit var previewAdapter: PreviewAdapter
 
     private val onSuccess = {
         this@MainActivity.progressBar.visibility = View.INVISIBLE
-        previewViewModel.loadMoreModule.loadMoreComplete()
+        previewAdapter.loadMoreModule.loadMoreComplete()
     }
     private val onEnd = {
         this@MainActivity.progressBar.visibility = View.INVISIBLE
-        previewViewModel.loadMoreModule.loadMoreEnd()
+        previewAdapter.loadMoreModule.loadMoreEnd()
     }
-    private val onFail = { _: String ->
+    private val onFail = { it: String ->
         this@MainActivity.progressBar.visibility = View.INVISIBLE
-        previewViewModel.loadMoreModule.loadMoreFail()
+        previewAdapter.loadMoreModule.loadMoreComplete()
+        this.addRetryFooter(it)
     }
 
     private var profileSettingItem = ProfileSettingDrawerItem()
@@ -79,23 +86,32 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 return false
             }
         })
+
+    private val loadMoreListener = OnLoadMoreListener {
+        Log.i(TAG, "下拉加载下一面")
+        viewModel.launchNextPage(
+            onSuccess = {
+                onSuccess()
+                previewAdapter.loadMoreModule.loadMoreComplete()
+            },
+            onEnd = onEnd,
+            onFail = onFail
+        )
+    }
     private var lastPressBack = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        viewModel.initBooruAsync(
-            onSuccess = onSuccess,
-            onEnd = onEnd,
-            onFail = onFail
-        )
+        viewModel.initBooruAsync {
+            previewAdapter.loadMoreModule.loadMoreToLoading()
+        }
         booruListDao = AppDatabase.getDatabase(this).booruDao()
         EventBus.getDefault().register(this)
         // 侧滑tag
         val toolbar = this.tagToolBar
         toolbar.title = this.getString(R.string.quickSearch)
-
         initSearchBar()
         initPreview()
         initSideBar(savedInstanceState)
@@ -107,6 +123,31 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         if (msg.type == EventType.BOORU_CHANGE) {
             viewModel.getAllBooruAsync()
         }
+    }
+
+    private fun addRetryFooter(errMsg: String) {
+        val view: View =
+            layoutInflater.inflate(R.layout.item_preview_retry, this.previewRecyclerView, false)
+        view.findViewById<TextView>(R.id.textViewErrMsg).text = errMsg
+        view.findViewById<Button>(R.id.buttonRetry).setOnClickListener {
+            if (viewModel.booruPostList.value?.size ?: 0 == 0) {
+                this.progressBar.visibility = View.VISIBLE
+            }
+            previewAdapter.footerLayout?.removeAllViews()
+            previewAdapter.notifyDataSetChanged()
+
+            previewAdapter.loadMoreModule.setOnLoadMoreListener(loadMoreListener)
+            viewModel.launchNextPage(
+                onSuccess = {
+                    onSuccess()
+                    previewAdapter.loadMoreModule.loadMoreComplete()
+                },
+                onEnd = onEnd,
+                onFail = onFail
+            )
+        }
+        previewAdapter.loadMoreModule.setOnLoadMoreListener(null)
+        previewAdapter.addFooterView(view, 0)
     }
 
     private fun initSearchBar() {
@@ -161,9 +202,9 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                     if (profile.identifier != 999_999_999.toLong()) {
                         viewModel.launchNewBooruAsync(
                             booruId = profile.identifier.toInt(),
-                            onSuccess = onSuccess,
-                            onEnd = onEnd,
-                            onFail = onFail
+                            onSuccess = {
+                                previewAdapter.loadMoreModule.loadMoreToLoading()
+                            }
                         )
                         SPUtil.set("main") {
                             putLong("start_booru_id", profile.identifier)
@@ -190,9 +231,9 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                         ): Boolean {
                             viewModel.launchNewBooruAsync(
                                 booruId = it.id.toInt(),
-                                onSuccess = onSuccess,
-                                onEnd = onEnd,
-                                onFail = onFail
+                                onSuccess = {
+                                    previewAdapter.loadMoreModule.loadMoreToLoading()
+                                },
                             )
                             SPUtil.set("main") {
                                 putLong("start_booru_id", it.id)
@@ -228,31 +269,21 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
      * 初始化预览界面
      */
     private fun initPreview() {
-        val layoutManager = StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)
-        this.previewRecyclerView.layoutManager = layoutManager
-        previewViewModel = PreviewViewModel(mutableListOf())
+        this.previewRecyclerView.layoutManager =
+            StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)
+        previewAdapter = PreviewAdapter(mutableListOf())
         // 上拉加载
-        previewViewModel.loadMoreModule.setOnLoadMoreListener {
-            Log.i(TAG, "加载下一面")
-            viewModel.launchNextPage(
-                onSuccess = {
-                    onSuccess()
-                    previewViewModel.loadMoreModule.loadMoreComplete()
-                },
-                onEnd = onEnd,
-                onFail = onFail
-            )
-        }
+        previewAdapter.loadMoreModule.setOnLoadMoreListener(loadMoreListener)
         // 预览图
         this.viewModel.booruPostList.observe(this) { booruPost ->
             booruPost?.let {
-                previewViewModel.setData(booruPost)
-                previewViewModel.notifyDataSetChanged()
+                previewAdapter.setData(booruPost)
+                previewAdapter.notifyDataSetChanged()
             }
         }
         //  详情界面
-        previewViewModel.setOnItemClickListener { _, view, position ->
-            val booruPost = previewViewModel.data[position]
+        previewAdapter.setOnItemClickListener { _, view, position ->
+            val booruPost = previewAdapter.data[position]
             val intent = Intent(this, PostActivity::class.java)
             val transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
                 this,
@@ -262,7 +293,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             intent.putExtra("booruPost", booruPost)
             startActivity(intent, transition.toBundle())
         }
-        this.previewRecyclerView.adapter = previewViewModel
+        this.previewRecyclerView.adapter = previewAdapter
     }
 
 

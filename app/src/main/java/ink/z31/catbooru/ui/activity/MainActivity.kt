@@ -48,6 +48,22 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private lateinit var headerResult: AccountHeader
     private lateinit var viewModel: MainViewModel
     private lateinit var booruListDao: BooruDao
+
+    private lateinit var previewViewModel: PreviewViewModel
+
+    private val onSuccess = {
+        this@MainActivity.progressBar.visibility = View.INVISIBLE
+        previewViewModel.loadMoreModule.loadMoreComplete()
+    }
+    private val onEnd = {
+        this@MainActivity.progressBar.visibility = View.INVISIBLE
+        previewViewModel.loadMoreModule.loadMoreEnd()
+    }
+    private val onFail = { _: String ->
+        this@MainActivity.progressBar.visibility = View.INVISIBLE
+        previewViewModel.loadMoreModule.loadMoreFail()
+    }
+
     private var profileSettingItem = ProfileSettingDrawerItem()
         .withName(R.string.booruManager)
         .withIcon(GoogleMaterial.Icon.gmd_settings)
@@ -69,6 +85,11 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
+        viewModel.initBooruAsync(
+            onSuccess = onSuccess,
+            onEnd = onEnd,
+            onFail = onFail
+        )
         booruListDao = AppDatabase.getDatabase(this).booruDao()
         EventBus.getDefault().register(this)
         // 侧滑tag
@@ -108,7 +129,13 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
 
             override fun onSearchConfirmed(text: CharSequence?) {
-                viewModel.launchNewSearchAsync(text.toString())
+                this@MainActivity.progressBar.visibility = View.VISIBLE
+                viewModel.launchNewSearchAsync(
+                    tags = text.toString(),
+                    onSuccess = onSuccess,
+                    onEnd = onEnd,
+                    onFail = onFail
+                )
             }
         })
 
@@ -132,7 +159,12 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
                 onProfileChanged { _, profile, _ ->
                     if (profile.identifier != 999_999_999.toLong()) {
-                        viewModel.launchNewBooruAsync(profile.identifier.toInt())
+                        viewModel.launchNewBooruAsync(
+                            booruId = profile.identifier.toInt(),
+                            onSuccess = onSuccess,
+                            onEnd = onEnd,
+                            onFail = onFail
+                        )
                         SPUtil.set("main") {
                             putLong("start_booru_id", profile.identifier)
                         }
@@ -156,7 +188,12 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                             position: Int,
                             drawerItem: IDrawerItem<*>
                         ): Boolean {
-                            viewModel.launchNewBooruAsync(it.id.toInt())
+                            viewModel.launchNewBooruAsync(
+                                booruId = it.id.toInt(),
+                                onSuccess = onSuccess,
+                                onEnd = onEnd,
+                                onFail = onFail
+                            )
                             SPUtil.set("main") {
                                 putLong("start_booru_id", it.id)
                             }
@@ -193,39 +230,29 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private fun initPreview() {
         val layoutManager = StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL)
         this.previewRecyclerView.layoutManager = layoutManager
-        val adapter = PreviewViewModel(mutableListOf())
+        previewViewModel = PreviewViewModel(mutableListOf())
         // 上拉加载
-        adapter.loadMoreModule.setOnLoadMoreListener {
+        previewViewModel.loadMoreModule.setOnLoadMoreListener {
             Log.i(TAG, "加载下一面")
-            viewModel.launchNextPage()
-            adapter.loadMoreModule.loadMoreComplete()
+            viewModel.launchNextPage(
+                onSuccess = {
+                    onSuccess()
+                    previewViewModel.loadMoreModule.loadMoreComplete()
+                },
+                onEnd = onEnd,
+                onFail = onFail
+            )
         }
         // 预览图
         this.viewModel.booruPostList.observe(this) { booruPost ->
             booruPost?.let {
-                adapter.setData(booruPost)
-                adapter.notifyDataSetChanged()
-            }
-        }
-        // 是否最后一面
-        this.viewModel.booruPostEnd.observe(this) {
-            if (it) {
-                adapter.loadMoreModule.loadMoreEnd()
-            } else {
-                adapter.setNewInstance(adapter.data)
-            }
-        }
-        // 加载进度条
-        this.viewModel.progressBarVis.observe(this) {
-            progressBar.visibility = if (it) {
-                View.VISIBLE
-            } else {
-                View.INVISIBLE
+                previewViewModel.setData(booruPost)
+                previewViewModel.notifyDataSetChanged()
             }
         }
         //  详情界面
-        adapter.setOnItemClickListener { _, view, position ->
-            val booruPost = adapter.data[position]
+        previewViewModel.setOnItemClickListener { _, view, position ->
+            val booruPost = previewViewModel.data[position]
             val intent = Intent(this, PostActivity::class.java)
             val transition = ActivityOptionsCompat.makeSceneTransitionAnimation(
                 this,
@@ -235,7 +262,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             intent.putExtra("booruPost", booruPost)
             startActivity(intent, transition.toBundle())
         }
-        this.previewRecyclerView.adapter = adapter
+        this.previewRecyclerView.adapter = previewViewModel
     }
 
 

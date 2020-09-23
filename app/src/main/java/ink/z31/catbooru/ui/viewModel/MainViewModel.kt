@@ -28,8 +28,6 @@ private const val TAG = "MainViewModel"
 class MainViewModel : ViewModel() {
 
     val booruPostList = MutableLiveData<MutableList<BooruPost>>()  // 缩略图列表
-    val booruPostEnd = MutableLiveData<Boolean>()  // 是否到最后一面
-    val progressBarVis = MutableLiveData<Boolean>()  // 是否正在加载
     val booruList = MutableLiveData<List<Booru>>() // Booru列表
 
     lateinit var booru: Booru
@@ -45,13 +43,6 @@ class MainViewModel : ViewModel() {
 
 
     private lateinit var booruRepository: BooruRepository
-
-    init {
-        viewModelScope.launch {
-            initBooru()
-            booruPostEnd.value = false
-        }
-    }
 
     override fun onCleared() {
         Log.i(TAG, "MainViewModel已被销毁")
@@ -79,6 +70,21 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    fun initBooruAsync(onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                initBooru()
+                onSuccess()
+            } catch (e: BooruPostEnd) {
+                Log.i(TAG, "加载界面, 已经到最后一面了")
+                onEnd()
+            } catch (e: Exception) {
+                Log.i(TAG, "加载出错 initBooruAsync ${e.message}")
+                onFail(e.message ?: "Unknown")
+            }
+        }
+    }
+
     private suspend fun initBooru() {
         val list = initDatabase()
         val defaultId = SPUtil.get("main", "start_booru_id", 0L)
@@ -93,10 +99,19 @@ class MainViewModel : ViewModel() {
     }
 
 
-    fun launchNewBooruAsync(booruId: Int) {
+    fun launchNewBooruAsync(booruId: Int, onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
         viewModelScope.launch {
             booru = booruListDao.getBooru(booruId)[0]
-            launchNewBooru(booru)
+            try {
+                launchNewBooru(booru)
+                onSuccess()
+            } catch (e: BooruPostEnd) {
+                Log.i(TAG, "加载界面, 已经到最后一面了")
+                onEnd()
+            } catch (e: Exception) {
+                Log.i(TAG, "加载出错 launchNewBooruAsync ${e.message}")
+                onFail(e.message ?: "Unknown")
+            }
         }
     }
 
@@ -104,9 +119,18 @@ class MainViewModel : ViewModel() {
     /**
      * 发起一次新的搜索
      */
-    fun launchNewSearchAsync(tags: String) {
+    fun launchNewSearchAsync(tags: String, onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
         viewModelScope.launch {
-            launchNewSearch(tags)
+            try {
+                launchNewSearch(tags)
+                onSuccess()
+            } catch (e: BooruPostEnd) {
+                Log.i(TAG, "加载界面, 已经到最后一面了")
+                onEnd()
+            } catch (e: Exception) {
+                Log.i(TAG, "加载出错 launchNewSearchAsync ${e.message}")
+                onFail(e.message ?: "Unknown")
+            }
         }
     }
 
@@ -114,20 +138,20 @@ class MainViewModel : ViewModel() {
     /**
      * 加载下一面
      */
-    fun launchNextPage() {
+    fun launchNextPage(onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
         viewModelScope.launch {
             try {
                 val data = booruRepository.nextPage()
                 val newList = (booruPostList.value ?: mutableListOf())
                 newList.addAll(data)
                 booruPostList.value = newList
-                booruPostEnd.value = false
+                onSuccess()
             } catch (e: BooruPostEnd) {
                 Log.i(TAG, "加载界面, 已经到最后一面了")
-                booruPostEnd.value = true
+                onEnd()
             } catch (e: Exception) {
-                Log.i(TAG, "加载界面, 已经到最后一面了")
-                booruPostEnd.value = true
+                Log.i(TAG, "加载出错 launchNextPage ${e.message}")
+                onFail(e.message ?: "Unknown")
             }
         }
     }
@@ -141,7 +165,6 @@ class MainViewModel : ViewModel() {
                     booru.favicon = icon
                 }
                 booruListDao.updateBooru(booru)
-
             }
         }
         this.booruRepository = BooruRepository(booru)
@@ -150,25 +173,12 @@ class MainViewModel : ViewModel() {
 
     private suspend fun launchNewSearch(tags: String) {
         booruPostList.value = mutableListOf()
-        progressBarVis.value = true
         searchTag = tags
         searchHistoryDao.insert(SearchHistory(
             data = tags,
             createTime = System.currentTimeMillis()
         ))
-        try {
-            val newSearchList = booruRepository.newSearch(tags)
-            booruPostList.value = newSearchList.toMutableList()
-            booruPostEnd.value = false
-        } catch (e: BooruPostEnd) {
-            Log.i(TAG, "加载界面, 已经到最后一面了")
-            booruPostEnd.value = true
-        } catch (e: Exception) {
-            Log.e(TAG, "加载页面发生错误${e}")
-            e.printStackTrace()
-        } finally {
-            progressBarVis.value = false
-        }
+        booruPostList.value = booruRepository.newSearch(tags).toMutableList()
     }
 }
 
@@ -200,6 +210,14 @@ class BooruPostList(private val api: BooruNetwork, private val tags: String) {
     private val booruLimit = 50
 
     suspend fun getNextPage(): List<BooruPost> {
-        return api.postsList(booruLimit, booruPage.getAndIncrement(), tags)
+        Log.i(TAG, "加载页面 $booruPage")
+        return try {
+            api.postsList(booruLimit, booruPage.getAndIncrement(), tags)
+        } catch (e: BooruPostEnd) {
+            throw e
+        } catch (e: Exception) {
+            booruPage.decrementAndGet()
+            throw e
+        }
     }
 }

@@ -31,14 +31,12 @@
             <com.mancj.materialsearchbar.MaterialSearchBar
                 android:id="@+id/searchBar"
                 android:background="@color/transparent"
-                style="@style/MaterialSearchBarLight"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:mt_hint="@string/app_name"
-                app:mt_maxSuggestionsCount="100"
                 app:mt_navIconEnabled="true"
                 app:mt_placeholder="@string/app_name"
-                app:mt_dividerColor="#000000"/>
+                app:mt_dividerColor="#1F000000"/>
         </androidx.cardview.widget.CardView>
 
         <ProgressBar

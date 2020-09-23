@@ -10,10 +10,10 @@ private const val TAG = "LoggingInterceptor"
 class LoggingInterceptor : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
         val request: Request = chain.request()
-        Log.d(TAG, "发送数据 ${request.url()} on ${chain.connection()}")
+        Log.v(TAG, "发送数据 ${request.url()} on ${chain.connection()}")
         val response: Response = chain.proceed(request)
         val responseBody = response.peekBody(1024 * 1024.toLong())
-        Log.d(TAG, "接收数据 ${response.request().url()} ${responseBody.string()}")
+        Log.v(TAG, "接收数据 ${response.request().url().toString().length}")
         return response
     }
 }

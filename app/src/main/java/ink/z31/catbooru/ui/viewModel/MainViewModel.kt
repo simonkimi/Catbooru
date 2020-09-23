@@ -18,10 +18,10 @@ import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.NetUtil
 import ink.z31.catbooru.util.SPUtil
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.Exception
+import java.util.concurrent.atomic.AtomicInteger
 
 private const val TAG = "MainViewModel"
 
@@ -195,12 +195,11 @@ class BooruRepository(booru: Booru) {
 
 
 class BooruPostList(private val api: BooruNetwork, private val tags: String) {
-    private var booruPage = 0
+    @Volatile
+    private var booruPage = AtomicInteger(0)
     private val booruLimit = 50
 
     suspend fun getNextPage(): List<BooruPost> {
-        val data = this.api.postsList(booruLimit, booruPage, tags)
-        booruPage += 1
-        return data
+        return api.postsList(booruLimit, booruPage.getAndIncrement(), tags)
     }
 }

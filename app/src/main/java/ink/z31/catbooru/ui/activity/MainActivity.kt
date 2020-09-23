@@ -90,6 +90,10 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
     private fun initSearchBar() {
         // 初始化搜索条
+        val adaptor = viewModel.historySuggestionAdapter
+        adaptor.suggestions = mutableListOf(SearchSuggestion("123"), SearchSuggestion("456"))
+        this.searchBar.setCustomSuggestionAdapter(adaptor)
+
         this.searchBar.setOnSearchActionListener(object : MaterialSearchBar.OnSearchActionListener {
             override fun onButtonClicked(buttonCode: Int) {
                 when (buttonCode) {
@@ -108,15 +112,11 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
         })
 
-        this.searchBar.lastSuggestions
         SearchBarMover(
             this,
             this.searchBarContainer,
             this.previewRecyclerView
         )
-        val adaptor = viewModel.historySuggestionAdapter
-        adaptor.suggestions = mutableListOf(SearchSuggestion("123"), SearchSuggestion("456"))
-        this.searchBar.setCustomSuggestionAdapter(adaptor)
     }
 
     private fun initSideBar(savedInstanceState: Bundle?) {
@@ -141,7 +141,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 }
             }
         }
-        this.viewModel.booruList.observe(this, { list ->
+        this.viewModel.booruList.observe(this) { list ->
             headerResult.clear()
             var activityProfile: ProfileDrawerItem? = null
             list.map {
@@ -183,7 +183,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 headerResult.activeProfile = it
             }
             headerResult.addProfile(profileSettingItem, headerResult.profiles?.size ?: 0)
-        })
+        }
         EventBus.getDefault().post(EventMsg(EventType.BOORU_CHANGE))
     }
 
@@ -201,28 +201,28 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             adapter.loadMoreModule.loadMoreComplete()
         }
         // 预览图
-        this.viewModel.booruPostList.observe(this, { booruPost ->
+        this.viewModel.booruPostList.observe(this) { booruPost ->
             booruPost?.let {
                 adapter.setData(booruPost)
                 adapter.notifyDataSetChanged()
             }
-        })
+        }
         // 是否最后一面
-        this.viewModel.booruPostEnd.observe(this, {
+        this.viewModel.booruPostEnd.observe(this) {
             if (it) {
                 adapter.loadMoreModule.loadMoreEnd()
             } else {
                 adapter.setNewInstance(adapter.data)
             }
-        })
+        }
         // 加载进度条
-        this.viewModel.progressBarVis.observe(this, {
+        this.viewModel.progressBarVis.observe(this) {
             progressBar.visibility = if (it) {
                 View.VISIBLE
             } else {
                 View.INVISIBLE
             }
-        })
+        }
         //  详情界面
         adapter.setOnItemClickListener { _, view, position ->
             val booruPost = adapter.data[position]

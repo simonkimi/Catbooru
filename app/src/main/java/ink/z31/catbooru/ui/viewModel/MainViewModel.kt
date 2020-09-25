@@ -209,12 +209,12 @@ class MainViewModel : ViewModel() {
                 tags.filter { !storeTag.contains(it) }
                     .filter { it.trim().isNotEmpty() }
                     .forEach {
-                    tagStoreDao.insert(
-                        TagStore(
-                            tag = it
+                        tagStoreDao.insert(
+                            TagStore(
+                                tag = it
+                            )
                         )
-                    )
-                }
+                    }
             }
             updateSuggestion()
         }
@@ -223,8 +223,11 @@ class MainViewModel : ViewModel() {
     private suspend fun updateSuggestion() {
         viewModelScope.launch {
             val suggestion = mutableListOf<SearchSuggestion>()
-            suggestion.addAll(searchHistoryDao.getAllData().map { SearchSuggestion(suggestion = "__his__${it.data}") })
-            suggestion.addAll(tagStoreDao.getAll().map { SearchSuggestion(suggestion = "__tag__${it.tag}") })
+            suggestion.addAll(
+                searchHistoryDao.getAllData()
+                    .map { SearchSuggestion(suggestion = "__his__${it.data}") })
+            suggestion.addAll(
+                tagStoreDao.getAll().map { SearchSuggestion(suggestion = "__tag__${it.tag}") })
             tagSuggestionAdapter.suggestions = suggestion
             tagSuggestionAdapter.filter.filter(searchTag)
         }

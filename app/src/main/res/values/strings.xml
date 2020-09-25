@@ -33,8 +33,6 @@
 
 
     <string name="title_activity_settings">SettingsActivity</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="loading">Loading</string>
     <string name="sample">sample</string>
     <string name="retry">重试</string>

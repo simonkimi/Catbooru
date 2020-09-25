@@ -107,17 +107,17 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         viewModel = ViewModelProvider(this).get(MainViewModel::class.java)
-        viewModel.initBooruAsync {
-            previewAdapter.loadMoreModule.loadMoreToLoading()
-        }
         booruListDao = AppDatabase.getDatabase(this).booruDao()
         EventBus.getDefault().register(this)
         // 侧滑tag
         val toolbar = this.tagToolBar
         toolbar.title = this.getString(R.string.quickSearch)
-        initSearchBar()
-        initPreview()
-        initSideBar(savedInstanceState)
+        viewModel.initBooruAsync {
+            initSearchBar()
+            initPreview()
+            initSideBar(savedInstanceState)
+            previewAdapter.loadMoreModule.loadMoreToLoading()
+        }
     }
 
 
@@ -155,10 +155,22 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
     private fun initSearchBar() {
         // 初始化搜索条
-        val adaptor = viewModel.historySuggestionAdapter
-        adaptor.suggestions = mutableListOf(SearchSuggestion("123"), SearchSuggestion("456"))
+        val adaptor = viewModel.tagSuggestionAdapter
+        adaptor.setOnSuggestionClickListener(object :
+            SearchBarSuggestionsAdapter.OnSuggestionClickListener {
+            override fun onClick(suggestion: SearchSuggestion, position: Int) {
+                if (searchBar.text.trim().isEmpty()) {
+                    searchBar.text = "${suggestion.suggestion} "
+                } else {
+                    val tags = searchBar.text.split(" ")
+                    val tagsLast = tags.subList(0, tags.lastIndex).toMutableList()
+                    tagsLast.add(suggestion.suggestion)
+                    searchBar.text = "${tagsLast.joinToString(" ")} "
+                }
+                searchBar.searchEditText.setSelection(searchBar.text.length)
+            }
+        })
         this.searchBar.setCustomSuggestionAdapter(adaptor)
-
         this.searchBar.setOnSearchActionListener(object : MaterialSearchBar.OnSearchActionListener {
             override fun onButtonClicked(buttonCode: Int) {
                 when (buttonCode) {
@@ -180,6 +192,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                     onEnd = onEnd,
                     onFail = onFail
                 )
+                this@MainActivity.searchBar.hideSuggestionsList()
             }
         })
 
@@ -188,34 +201,22 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                val searchBar = this@MainActivity.searchBar
-                val adapter = if (searchBar.text.isEmpty()) {
-                    // 空, 历史记录
-                    viewModel.historySuggestionAdapter.setOnSuggestionClickListener(object :
-                        SearchBarSuggestionsAdapter.OnSuggestionClickListener {
-                        override fun onClick(suggestion: SearchSuggestion, position: Int) {
-                            searchBar.text = suggestion.suggestion
-                        }
-                    })
-                } else {
-                    // 有, 自动补全
-                    viewModel.tagSuggestionAdapter.setOnSuggestionClickListener(object :
-                        SearchBarSuggestionsAdapter.OnSuggestionClickListener {
-                        override fun onClick(suggestion: SearchSuggestion, position: Int) {
-                            val tags = searchBar.text.split(" ")
-                            val tagsLast = tags.subList(0, tags.lastIndex).toMutableList()
-                            tagsLast.add(suggestion.suggestion)
-                            searchBar.text = tagsLast.joinToString(" ")
-                        }
-                    })
-                }
-                adapter.filter.filter(searchBar.text)
+                adaptor.filter.filter(this@MainActivity.searchBar.text)
+                adaptor.notifyDataSetChanged()
             }
 
             override fun afterTextChanged(p0: Editable?) {
             }
 
         })
+
+        this.searchBar.searchEditText.setOnFocusChangeListener { _, has ->
+            if (has) {
+                this.searchBar.showSuggestionsList()
+            } else {
+                this.searchBar.hideSuggestionsList()
+            }
+        }
 
         SearchBarMover(
             this,
@@ -328,6 +329,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 "postImg"
             )
             intent.putExtra("booruPost", booruPost)
+            viewModel.updateTagStore(booruPost.tags)
             startActivity(intent, transition.toBundle())
         }
         this.previewRecyclerView.adapter = previewAdapter
@@ -352,7 +354,10 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     }
 
     override fun onBackPressed() {
-        if (materialDrawer.isDrawerOpen) {
+        if (this.searchBar.isSuggestionsVisible) {
+            this.searchBar.hideSuggestionsList()
+        }
+        else if (materialDrawer.isDrawerOpen) {
             materialDrawer.closeDrawer()
         } else {
             val now = Date().time

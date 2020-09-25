@@ -12,4 +12,7 @@ interface TagStoreDao {
 
     @Insert
     suspend fun insert(tagStore: TagStore)
+
+    @Query("select * from TagStore")
+    suspend fun getAll(): List<TagStore>
 }

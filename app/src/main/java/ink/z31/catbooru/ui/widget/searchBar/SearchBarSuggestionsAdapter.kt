@@ -25,7 +25,7 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
 
 
     override fun getSingleViewHeight(): Int {
-        return 100
+        return 2000
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SuggestionHolder {
@@ -38,15 +38,38 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
         holder: SuggestionHolder?,
         position: Int
     ) {
-        holder?.suggestionTextView?.text = suggestion?.suggestion
+        holder?.suggestionTextView?.text = suggestion!!.suggestion
     }
 
     override fun getFilter(): Filter {
         return object : Filter() {
             override fun performFiltering(p0: CharSequence?): FilterResults {
+                val input = p0!!.toString()
                 val results = FilterResults()
-                suggestions = suggestions_clone.filter {
-                    it.suggestion.toLowerCase(Locale.ROOT).contains(p0!!)
+                suggestions = if (input.trim().isEmpty()) {
+                    suggestions_clone
+                        .filter { it.suggestion.startsWith("__his__") }
+                        .map {
+                            SearchSuggestion(
+                                suggestion = it.suggestion.substring(
+                                    "__his__".length,
+                                    it.suggestion.length
+                                )
+                            )
+                        }
+                } else {
+                    val lastTag = input.split(" ").last()
+                    suggestions_clone
+                        .filter { it.suggestion.startsWith("__tag__") }
+                        .filter { it.suggestion.contains(lastTag) }
+                        .map {
+                            SearchSuggestion(
+                                suggestion = it.suggestion.substring(
+                                    "__tag__".length,
+                                    it.suggestion.length
+                                )
+                            )
+                        }
                 }
                 results.values = suggestions
                 return results
@@ -65,6 +88,7 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
 
         init {
             itemView.setOnClickListener {
+                println(adapterPosition)
                 listener?.onClick(suggestions[adapterPosition], adapterPosition)
             }
         }

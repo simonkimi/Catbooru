@@ -3,10 +3,7 @@ package ink.z31.catbooru.ui.viewModel
 import android.util.Log
 import android.view.LayoutInflater
 import androidx.lifecycle.*
-import ink.z31.catbooru.data.database.AppDatabase
-import ink.z31.catbooru.data.database.Booru
-import ink.z31.catbooru.data.database.BooruType
-import ink.z31.catbooru.data.database.SearchHistory
+import ink.z31.catbooru.data.database.*
 import ink.z31.catbooru.data.model.base.BooruPost
 import ink.z31.catbooru.data.model.base.BooruPostEnd
 import ink.z31.catbooru.data.network.BooruNetwork
@@ -14,10 +11,12 @@ import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
 import ink.z31.catbooru.ui.widget.searchBar.SearchBarSuggestionsAdapter
+import ink.z31.catbooru.ui.widget.searchBar.SearchSuggestion
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.NetUtil
 import ink.z31.catbooru.util.SPUtil
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.lang.Exception
@@ -31,14 +30,12 @@ class MainViewModel : ViewModel() {
     val booruList = MutableLiveData<List<Booru>>() // Booru列表
 
     lateinit var booru: Booru
-
-
     private val booruListDao = AppDatabase.getDatabase(AppUtil.context).booruDao()
     private val searchHistoryDao = AppDatabase.getDatabase(AppUtil.context).searchHistoryDao()
+    private val tagStoreDao = AppDatabase.getDatabase(AppUtil.context).tagStoreDao()
 
     // 搜索栏
     private var searchTag = ""
-    val historySuggestionAdapter = SearchBarSuggestionsAdapter(LayoutInflater.from(AppUtil.context))
     val tagSuggestionAdapter = SearchBarSuggestionsAdapter(LayoutInflater.from(AppUtil.context))
 
 
@@ -46,6 +43,12 @@ class MainViewModel : ViewModel() {
 
     override fun onCleared() {
         Log.i(TAG, "MainViewModel已被销毁")
+    }
+
+    init {
+        viewModelScope.launch {
+            updateSuggestion()
+        }
     }
 
     /**
@@ -181,7 +184,7 @@ class MainViewModel : ViewModel() {
     private suspend fun launchNewSearch(tags: String) {
         booruPostList.value = mutableListOf()
         searchTag = tags
-        if (tags.isNotEmpty()) {
+        if (tags.trim().isNotEmpty()) {
             val history: SearchHistory? = searchHistoryDao.getAllData().find { it.data == tags }
             if (history != null) {
                 history.createTime = System.currentTimeMillis()
@@ -194,8 +197,37 @@ class MainViewModel : ViewModel() {
                     )
                 )
             }
+            updateSuggestion()
         }
         booruPostList.value = booruRepository.newSearch(tags).toMutableList()
+    }
+
+    fun updateTagStore(tags: List<String>) {
+        GlobalScope.launch {
+            withContext(Dispatchers.IO) {
+                val storeTag = tagStoreDao.getAll().map { it.tag }
+                tags.filter { !storeTag.contains(it) }
+                    .filter { it.trim().isNotEmpty() }
+                    .forEach {
+                    tagStoreDao.insert(
+                        TagStore(
+                            tag = it
+                        )
+                    )
+                }
+            }
+            updateSuggestion()
+        }
+    }
+
+    private suspend fun updateSuggestion() {
+        viewModelScope.launch {
+            val suggestion = mutableListOf<SearchSuggestion>()
+            suggestion.addAll(searchHistoryDao.getAllData().map { SearchSuggestion(suggestion = "__his__${it.data}") })
+            suggestion.addAll(tagStoreDao.getAll().map { SearchSuggestion(suggestion = "__tag__${it.tag}") })
+            tagSuggestionAdapter.suggestions = suggestion
+            tagSuggestionAdapter.filter.filter(searchTag)
+        }
     }
 }
 
@@ -218,6 +250,7 @@ class BooruRepository(booru: Booru) {
     suspend fun nextPage(): List<BooruPost> {
         return booruPostList.getNextPage()
     }
+
 }
 
 

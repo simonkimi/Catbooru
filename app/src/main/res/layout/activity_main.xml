@@ -35,6 +35,7 @@
                 android:layout_height="wrap_content"
                 app:mt_hint="@string/app_name"
                 app:mt_navIconEnabled="true"
+                app:mt_maxSuggestionsCount="20"
                 app:mt_placeholder="@string/app_name"
                 app:mt_dividerColor="#1F000000"/>
         </androidx.cardview.widget.CardView>

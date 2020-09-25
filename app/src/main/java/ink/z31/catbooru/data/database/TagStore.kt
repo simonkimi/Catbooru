@@ -4,4 +4,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity
-data class TagStore(@PrimaryKey var tag: String)
+data class TagStore(var tag: String) {
+    @PrimaryKey(autoGenerate = true)
+    var id: Long = 0
+}

@@ -48,12 +48,18 @@ class MainViewModel : ViewModel() {
         Log.i(TAG, "MainViewModel已被销毁")
     }
 
+    /**
+     * 外部更新Booru列表
+     */
     fun getAllBooruAsync() {
         viewModelScope.launch {
             booruList.value = booruListDao.getAllBooru()
         }
     }
 
+    /**
+     * 初始化数据库
+     */
     private suspend fun initDatabase(): List<Booru> {
         val booruList = booruListDao.getAllBooru()
         return if (booruList.isEmpty()) {
@@ -70,6 +76,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    /**
+     * 外部初始化Booru
+     */
     fun initBooruAsync(onInitSuccess: () -> Unit) {
         viewModelScope.launch {
             initBooru()
@@ -77,6 +86,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
+    /**
+     * 初始化Booru
+     */
     private suspend fun initBooru() {
         val list = initDatabase()
         val defaultId = SPUtil.get("main", "start_booru_id", 0L)
@@ -90,7 +102,9 @@ class MainViewModel : ViewModel() {
         launchNewBooru(booru)
     }
 
-
+    /**
+     * 外部启动新的Booru
+     */
     fun launchNewBooruAsync(booruId: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
             booru = booruListDao.getBooru(booruId)[0]
@@ -103,7 +117,12 @@ class MainViewModel : ViewModel() {
     /**
      * 发起一次新的搜索
      */
-    fun launchNewSearchAsync(tags: String = searchTag, onSuccess: () -> Unit, onEnd: () -> Unit, onFail: (String) -> Unit) {
+    fun launchNewSearchAsync(
+        tags: String = searchTag,
+        onSuccess: () -> Unit,
+        onEnd: () -> Unit,
+        onFail: (String) -> Unit
+    ) {
         viewModelScope.launch {
             try {
                 launchNewSearch(tags)
@@ -140,7 +159,9 @@ class MainViewModel : ViewModel() {
         }
     }
 
-
+    /**
+     * 启动一个新的Booru
+     */
     private suspend fun launchNewBooru(booru: Booru) {
         withContext(Dispatchers.IO) {
             if (booru.favicon.isEmpty()) {
@@ -154,13 +175,26 @@ class MainViewModel : ViewModel() {
         this.booruRepository = BooruRepository(booru)
     }
 
+    /**
+     * 启动一个新的搜索
+     */
     private suspend fun launchNewSearch(tags: String) {
         booruPostList.value = mutableListOf()
         searchTag = tags
-        searchHistoryDao.insert(SearchHistory(
-            data = tags,
-            createTime = System.currentTimeMillis()
-        ))
+        if (tags.isNotEmpty()) {
+            val history: SearchHistory? = searchHistoryDao.getAllData().find { it.data == tags }
+            if (history != null) {
+                history.createTime = System.currentTimeMillis()
+                searchHistoryDao.update(history)
+            } else {
+                searchHistoryDao.insert(
+                    SearchHistory(
+                        data = tags,
+                        createTime = System.currentTimeMillis()
+                    )
+                )
+            }
+        }
         booruPostList.value = booruRepository.newSearch(tags).toMutableList()
     }
 }

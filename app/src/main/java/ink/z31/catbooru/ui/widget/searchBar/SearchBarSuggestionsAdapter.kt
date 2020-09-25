@@ -1,7 +1,5 @@
 package ink.z31.catbooru.ui.widget.searchBar
 
-import android.os.Parcel
-import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -12,31 +10,6 @@ import com.mancj.materialsearchbar.adapter.SuggestionsAdapter
 import ink.z31.catbooru.R
 import java.util.*
 
-data class SearchSuggestion(
-    var suggestion: String
-): Parcelable {
-    constructor(parcel: Parcel) : this(parcel.readString()!!)
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(suggestion)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<SearchSuggestion> {
-        override fun createFromParcel(parcel: Parcel): SearchSuggestion {
-            return SearchSuggestion(parcel)
-        }
-
-        override fun newArray(size: Int): Array<SearchSuggestion?> {
-            return arrayOfNulls(size)
-        }
-    }
-
-}
-
 
 class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
     SuggestionsAdapter<SearchSuggestion, SearchBarSuggestionsAdapter.SuggestionHolder>(
@@ -45,8 +18,9 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
 
     private var listener: OnSuggestionClickListener? = null
 
-    fun setOnSuggestionClickListener(listener: OnSuggestionClickListener) {
+    fun setOnSuggestionClickListener(listener: OnSuggestionClickListener): SearchBarSuggestionsAdapter {
         this.listener = listener
+        return this
     }
 
 
@@ -71,13 +45,8 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
         return object : Filter() {
             override fun performFiltering(p0: CharSequence?): FilterResults {
                 val results = FilterResults()
-                val term: List<String> = p0!!.split("")
-                suggestions = if (term.isEmpty()) {
-                    suggestions_clone
-                } else {
-                    suggestions_clone.filter {
-                        it.suggestion.toLowerCase(Locale.ROOT).contains(term[term.lastIndex])
-                    }
+                suggestions = suggestions_clone.filter {
+                    it.suggestion.toLowerCase(Locale.ROOT).contains(p0!!)
                 }
                 results.values = suggestions
                 return results

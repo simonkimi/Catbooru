@@ -6,6 +6,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -32,6 +34,7 @@ import ink.z31.catbooru.data.database.dao.BooruDao
 import ink.z31.catbooru.ui.adapter.PreviewAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
+import ink.z31.catbooru.ui.widget.searchBar.SearchBarSuggestionsAdapter
 import ink.z31.catbooru.ui.widget.searchBar.SearchSuggestion
 import ink.z31.catbooru.util.Base64Util
 import ink.z31.catbooru.util.EventMsg
@@ -180,6 +183,40 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
         })
 
+        this.searchBar.addTextChangeListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                val searchBar = this@MainActivity.searchBar
+                val adapter = if (searchBar.text.isEmpty()) {
+                    // 空, 历史记录
+                    viewModel.historySuggestionAdapter.setOnSuggestionClickListener(object :
+                        SearchBarSuggestionsAdapter.OnSuggestionClickListener {
+                        override fun onClick(suggestion: SearchSuggestion, position: Int) {
+                            searchBar.text = suggestion.suggestion
+                        }
+                    })
+                } else {
+                    // 有, 自动补全
+                    viewModel.tagSuggestionAdapter.setOnSuggestionClickListener(object :
+                        SearchBarSuggestionsAdapter.OnSuggestionClickListener {
+                        override fun onClick(suggestion: SearchSuggestion, position: Int) {
+                            val tags = searchBar.text.split(" ")
+                            val tagsLast = tags.subList(0, tags.lastIndex).toMutableList()
+                            tagsLast.add(suggestion.suggestion)
+                            searchBar.text = tagsLast.joinToString(" ")
+                        }
+                    })
+                }
+                adapter.filter.filter(searchBar.text)
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+            }
+
+        })
+
         SearchBarMover(
             this,
             this.searchBarContainer,
@@ -277,7 +314,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         // 预览图
         this.viewModel.booruPostList.observe(this) { booruPost ->
             booruPost?.let {
-                previewAdapter.setData(booruPost)
+                previewAdapter.setData(it)
                 previewAdapter.notifyDataSetChanged()
             }
         }

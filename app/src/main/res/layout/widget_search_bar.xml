@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp">
+
+            <ImageView
+                android:id="@+id/searchNav"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:src="@drawable/ic_menu_black_24dp"
+                android:layout_gravity="start|center_vertical"
+                android:padding="12dp" />
+
+            <TextView
+                android:id="@+id/searchTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="48dp"
+                android:layout_marginRight="48dp"
+                android:textSize="@dimen/text_little_large"
+                android:textColor="?android:attr/textColorSecondary"
+                android:singleLine="true"
+                android:text="@string/app_name"
+                android:maxLines="1"/>
+
+            <ImageView
+                android:id="@+id/searchAction"
+                android:src="@drawable/ic_baseline_add_24"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|center_vertical"
+                android:padding="12dp"/>
+
+            <ink.z31.catbooru.ui.widget.searchview.SearchBarEditText
+                android:id="@+id/searchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="48dp"
+                android:layout_marginRight="48dp"
+                android:textSize="@dimen/text_little_small"
+                android:background="@color/transparent"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:visibility="gone"
+                android:imeOptions="actionSearch"
+                android:inputType="text"/>
+
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/suggestionContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/suggestionDivider"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#1F000000"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/suggestionRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

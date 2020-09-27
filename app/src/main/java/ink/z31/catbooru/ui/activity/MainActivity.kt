@@ -120,7 +120,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         }
     }
 
-
+    @Suppress("unused")
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onBooruChanged(msg: EventMsg) {
         if (msg.type == EventType.BOORU_CHANGE) {

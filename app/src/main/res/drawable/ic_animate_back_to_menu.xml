@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/ic_v_menu_grey">
+    <target
+        android:name="menu_container"
+        android:animation="@animator/back_to_menu_rotation"/>
+    <target
+        android:name="menu"
+        android:animation="@animator/back_to_menu_path"/>
+</animated-vector>

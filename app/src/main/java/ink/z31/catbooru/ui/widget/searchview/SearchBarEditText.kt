@@ -2,11 +2,22 @@ package ink.z31.catbooru.ui.widget.searchview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatEditText
 
-class SearchBarEditText(context: Context) : AppCompatEditText(context) {
+class SearchBarEditText : AppCompatEditText {
+    constructor(context: Context): super(context)
+
+    constructor(context: Context, attributeSet: AttributeSet)
+            : super(context, attributeSet)
+
+    constructor(context: Context, attributeSet: AttributeSet, def: Int)
+            : super(context, attributeSet, def)
+
+
+
     private var mListener: SearchEditTextListener? = null
 
     fun setSearchEditTextListener(listener: SearchEditTextListener) {
@@ -23,8 +34,8 @@ class SearchBarEditText(context: Context) : AppCompatEditText(context) {
                     keyDispatcherState.handleUpEvent(event)
                 }
                 if (event.isTracking && !event.isCanceled) {
-                    if (mListener != null) {
-                        mListener!!.onBackPressed()
+                    mListener?.let {
+                        it.onSearchEditTextBackPressed()
                         return true
                     }
                 }
@@ -36,7 +47,7 @@ class SearchBarEditText(context: Context) : AppCompatEditText(context) {
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event!!.action == MotionEvent.ACTION_UP && mListener != null) {
-            mListener!!.onClick()
+            mListener?.onSearchEditTextClick()
         }
         return try {
             super.onTouchEvent(event)
@@ -47,7 +58,7 @@ class SearchBarEditText(context: Context) : AppCompatEditText(context) {
 
 
     interface SearchEditTextListener {
-        fun onClick()
-        fun onBackPressed()
+        fun onSearchEditTextClick()
+        fun onSearchEditTextBackPressed()
     }
 }

@@ -2,34 +2,32 @@ package ink.z31.catbooru.ui.widget.searchview
 
 
 import android.animation.Animator
+import android.animation.ValueAnimator
 import android.content.Context
+import android.content.Context.INPUT_METHOD_SERVICE
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
+import android.text.TextWatcher
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.LinearLayoutManager
 import ink.z31.catbooru.R
+import ink.z31.catbooru.util.AppUtil
+import ink.z31.catbooru.util.ViewUtils
 import kotlinx.android.synthetic.main.widget_search_bar.view.*
+import kotlin.math.min
 
-class SearchView : CardView, SearchBarEditText.SearchEditTextListener {
+
+class SearchView : CardView {
     companion object {
-        enum class Anim {
-            MENU_TO_BACK,
-            BACK_TO_MENU,
-            ADD_TO_FORK,
-            FORK_TO_ADD,
-            SEARCH_EDIT_SHOW,
-            SEARCH_EDIT_HIDE,
-            SEARCH_TEXT_SHOW,
-            SEARCH_TEXT_HIDE
-        }
-
-        enum class SearchState {
-            DEFAULT,
-            ON_SEARCH
+        enum class STATE {
+            STATE_MAIN,
+            STATE_SEARCH
         }
     }
 
@@ -42,7 +40,9 @@ class SearchView : CardView, SearchBarEditText.SearchEditTextListener {
     constructor(context: Context, attributeSet: AttributeSet, defStyleAttr: Int)
             : super(context, attributeSet, defStyleAttr)
 
-    var leftDrawable: Drawable? = searchNav.drawable
+    val animDuration = 250L
+
+    var leftDrawable: Drawable? = null
         set(value) {
             field = value
             searchNav.setImageDrawable(value)
@@ -50,169 +50,201 @@ class SearchView : CardView, SearchBarEditText.SearchEditTextListener {
         get() = searchNav.drawable
 
 
-    var rightDrawable: Drawable? = searchAction.drawable
+    var rightDrawable: Drawable? = null
         set(value) {
             field = value
             searchAction.setImageDrawable(value)
         }
         get() = searchAction.drawable
 
-    var editTextHint: String = "搜索 Catbooru"
+    var editTextHint: String = ""
         set(value) {
             searchEditText.hint = value
             field = value
         }
+        get() = searchEditText.hint.toString()
 
-    var titleHint: String = "Catbooru"
+    var titleHint: String = ""
         set(value) {
             searchTitle.text = value
             field = value
         }
+        get() = searchTitle.text.toString()
+
+    var text: String = ""
+        set(value) {
+            field = value
+            searchEditText.setText(value)
+            searchEditText.setSelection(value.length)
+        }
+        get() = searchEditText.text.toString()
 
 
-    var searchState: SearchState = SearchState.DEFAULT
+    var helper: Helper? = null
 
-    var mHelper: Helper? = null
+    var state: STATE = STATE.STATE_MAIN
+
+    var suggestionsAdapter: SuggestionsAdapter<*, *>? = null
+        set(value) {
+            field = value
+            suggestionRecyclerView.adapter = value
+        }
+
+    var suggestionOpen: Boolean = false
+        set(value) {
+            field = value
+            suggestionsAdapter?.let {
+                if (value && it.suggestions.isNotEmpty()) {
+                    val location1 = IntArray(2)
+                    this.getLocationInWindow(location1)
+                    val height =
+                        resources.displayMetrics.heightPixels - y - location1[1] - this.height
+                    animateSuggestions(
+                        0,
+                        min(height.toInt(), it.suggestionItemHeight() * it.suggestionsFiltered.size)
+                    )
+                } else {
+                    animateSuggestions(this.height, 0)
+                }
+            }
+        }
 
 
     init {
         val layoutInflater = LayoutInflater.from(context)
         layoutInflater.inflate(R.layout.widget_search_bar, this)
         searchNav.setOnClickListener {
-            mHelper?.onLeftButtonClick()
+            helper?.onLeftButtonClick()
         }
         searchAction.setOnClickListener {
-            mHelper?.onRightButtonClick()
+            helper?.onRightButtonClick()
         }
         searchTitle.setOnClickListener {
-            mHelper?.onHintTextClick()
+            helper?.onHintTextClick()
         }
         searchEditText.setOnEditorActionListener { _, i, _ ->
             if (i == EditorInfo.IME_ACTION_SEARCH || i == EditorInfo.IME_NULL) {
-                mHelper?.onSearch(searchEditText.text.toString().trim())
+                helper?.onSearch(searchEditText.text.toString().trim())
                 true
             } else {
                 false
             }
         }
+        searchEditText.listener = object : SearchBarEditText.SearchEditTextListener {
+            override fun onSearchEditTextClick() {
+                helper?.onSearchEditTextClick()
+            }
 
+            override fun onSearchEditTextBackPressed() {
+                helper?.onSearchEditTextBackPressed()
+            }
+
+            override fun onSearchTextChanged(text: String) {
+                helper?.onSearchTextChange(text)
+            }
+
+        }
+        val layoutManager = LinearLayoutManager(context)
+        layoutManager.stackFromEnd = true
+        suggestionRecyclerView.layoutManager = layoutManager
     }
 
-    fun playInnerAnim(state: Anim) {
+    fun setSearchState(state: STATE) {
         when (state) {
-            Anim.MENU_TO_BACK -> {
-                searchNav.setImageDrawable(
-                    ContextCompat.getDrawable(
-                        context,
-                        R.drawable.ic_animate_menu_to_back
-                    )
+            STATE.STATE_MAIN -> {
+                val imm: InputMethodManager =
+                    AppUtil.context.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.hideSoftInputFromWindow(this.windowToken, 0)
+                ViewUtils.fadeByAlpha(searchEditText, animDuration)
+                ViewUtils.showByAlpha(searchTitle, animDuration)
+                leftDrawable = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_animate_back_to_menu
                 )
-                (searchNav.drawable as Animatable).start()
-            }
-            Anim.BACK_TO_MENU -> {
-                searchNav.setImageDrawable(
-                    ContextCompat.getDrawable(
-                        context,
-                        R.drawable.ic_animate_back_to_menu
-                    )
-                )
-                (searchNav.drawable as Animatable).start()
-            }
-            Anim.SEARCH_TEXT_HIDE -> {
-                searchTitle.animate()
-                    .alphaBy(1F)
-                    .alpha(0F)
-                    .setDuration(250)
-                    .setListener(object : Animator.AnimatorListener {
-                        override fun onAnimationStart(p0: Animator?) {
-
-                        }
-
-                        override fun onAnimationEnd(p0: Animator?) {
-                            searchTitle.visibility = View.GONE
-                        }
-
-                        override fun onAnimationCancel(p0: Animator?) {
-
-                        }
-
-                        override fun onAnimationRepeat(p0: Animator?) {
-
-                        }
-
-                    })
-            }
-            Anim.SEARCH_TEXT_SHOW -> {
-                searchTitle.visibility = View.VISIBLE
-                searchTitle.animate()
-                    .alphaBy(0F)
-                    .alpha(1F)
-                    .setDuration(250)
-                    .setListener(null)
-                    .start()
-            }
-            Anim.ADD_TO_FORK -> {
-                searchAction.setImageDrawable(
-                    ContextCompat.getDrawable(
-                        context,
-                        R.drawable.ic_animate_add_to_fork
-                    )
-                )
-                (searchAction.drawable as Animatable).start()
-            }
-            Anim.FORK_TO_ADD -> {
-                ContextCompat.getDrawable(
+                (leftDrawable as Animatable).start()
+                rightDrawable = ContextCompat.getDrawable(
                     context,
                     R.drawable.ic_animate_fork_to_add
                 )
-                (searchAction.drawable as Animatable).start()
+                (rightDrawable as Animatable).start()
+                suggestionOpen = false
             }
-            Anim.SEARCH_EDIT_HIDE -> {
-                searchEditText.animate()
-                    .alphaBy(1F)
-                    .alpha(0F)
-                    .setDuration(250)
-                    .setListener(object : Animator.AnimatorListener {
-                        override fun onAnimationStart(p0: Animator?) {
-
-                        }
-
-                        override fun onAnimationEnd(p0: Animator?) {
-                            searchEditText.visibility = View.GONE
-                        }
-
-                        override fun onAnimationCancel(p0: Animator?) {
-
-                        }
-
-                        override fun onAnimationRepeat(p0: Animator?) {
-
-                        }
-
-                    })
-                    .start()
+            STATE.STATE_SEARCH -> {
+                ViewUtils.fadeByAlpha(searchTitle, animDuration)
+                ViewUtils.showByAlpha(searchEditText, animDuration)
+                leftDrawable = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_animate_menu_to_back
+                )
+                (leftDrawable as Animatable).start()
+                rightDrawable = ContextCompat.getDrawable(
+                    context,
+                    R.drawable.ic_animate_add_to_fork
+                )
+                (rightDrawable as Animatable).start()
+                searchEditText.requestFocus()
+                suggestionOpen = true
             }
-            Anim.SEARCH_EDIT_SHOW -> {
-                searchEditText.visibility = View.VISIBLE
-                searchEditText.animate()
-                    .setListener(null)
-                    .alphaBy(0F)
-                    .alpha(1F)
-                    .setDuration(250)
-                    .start()
 
+        }
+        this.state = state
+    }
+
+    fun addTextChangedListener(watcher: TextWatcher) {
+        searchEditText.addTextChangedListener(watcher)
+    }
+
+    fun resizeSuggestions() {
+        suggestionsAdapter?.let {
+            if (state == STATE.STATE_SEARCH) {
+                val fitSize = it.suggestionItemHeight() * it.suggestionsFiltered.size
+                val location1 = IntArray(2)
+                this.getLocationInWindow(location1)
+                val windowsSize =
+                    resources.displayMetrics.heightPixels - y - location1[1] - this.height
+                if (fitSize < windowsSize) {
+                    animateSuggestions(this.height, fitSize)
+                }
             }
         }
-
-
     }
 
-    override fun onSearchEditTextClick() {
-        mHelper?.onSearchEditTextClick()
-    }
 
-    override fun onSearchEditTextBackPressed() {
-        mHelper?.onSearchEditTextBackPressed()
+    private fun animateSuggestions(from: Int, to: Int) {
+        if (to > 0) {
+            suggestionContainer.visibility = View.VISIBLE
+        }
+        if (to > 0 && suggestionsAdapter?.itemCount ?: 0 == 0) {
+            return
+        }
+        val lp = suggestionRecyclerView.layoutParams
+        val animator = ValueAnimator.ofInt(from, to)
+            .setDuration(animDuration)
+        animator.addUpdateListener {
+            lp.height = it.animatedValue as Int
+            suggestionRecyclerView.layoutParams = lp
+        }
+        animator.addListener(object : Animator.AnimatorListener {
+            override fun onAnimationStart(p0: Animator?) {
+
+            }
+
+            override fun onAnimationEnd(p0: Animator?) {
+                if (to == 0) {
+                    suggestionContainer.visibility = View.GONE
+                }
+            }
+
+            override fun onAnimationCancel(p0: Animator?) {
+
+            }
+
+            override fun onAnimationRepeat(p0: Animator?) {
+
+            }
+
+        })
+        animator.start()
     }
 
     interface Helper {
@@ -222,6 +254,6 @@ class SearchView : CardView, SearchBarEditText.SearchEditTextListener {
         fun onRightButtonClick()
         fun onSearch(key: String)
         fun onHintTextClick()
-
+        fun onSearchTextChange(text: String)
     }
 }

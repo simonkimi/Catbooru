@@ -2,13 +2,15 @@ package ink.z31.catbooru.ui.widget.searchview
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.text.Editable
+import android.text.TextWatcher
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.MotionEvent
 import androidx.appcompat.widget.AppCompatEditText
 
 class SearchBarEditText : AppCompatEditText {
-    constructor(context: Context): super(context)
+    constructor(context: Context) : super(context)
 
     constructor(context: Context, attributeSet: AttributeSet)
             : super(context, attributeSet)
@@ -17,12 +19,25 @@ class SearchBarEditText : AppCompatEditText {
             : super(context, attributeSet, def)
 
 
+    var listener: SearchEditTextListener? = null
 
-    private var mListener: SearchEditTextListener? = null
+    init {
+        this.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
 
-    fun setSearchEditTextListener(listener: SearchEditTextListener) {
-        mListener = listener
+            }
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                listener?.onSearchTextChanged(p0.toString())
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+
+            }
+
+        })
     }
+
 
     override fun onKeyPreIme(keyCode: Int, event: KeyEvent?): Boolean {
         event?.let {
@@ -32,11 +47,11 @@ class SearchBarEditText : AppCompatEditText {
                     return true
                 } else if (event.action == KeyEvent.ACTION_UP) {
                     keyDispatcherState.handleUpEvent(event)
-                }
-                if (event.isTracking && !event.isCanceled) {
-                    mListener?.let {
-                        it.onSearchEditTextBackPressed()
-                        return true
+                    if (event.isTracking && !event.isCanceled) {
+                        listener?.let {
+                            it.onSearchEditTextBackPressed()
+                            return true
+                        }
                     }
                 }
             }
@@ -46,8 +61,8 @@ class SearchBarEditText : AppCompatEditText {
 
     @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent?): Boolean {
-        if (event!!.action == MotionEvent.ACTION_UP && mListener != null) {
-            mListener?.onSearchEditTextClick()
+        if (event!!.action == MotionEvent.ACTION_UP && listener != null) {
+            listener?.onSearchEditTextClick()
         }
         return try {
             super.onTouchEvent(event)
@@ -60,5 +75,6 @@ class SearchBarEditText : AppCompatEditText {
     interface SearchEditTextListener {
         fun onSearchEditTextClick()
         fun onSearchEditTextBackPressed()
+        fun onSearchTextChanged(text: String)
     }
 }

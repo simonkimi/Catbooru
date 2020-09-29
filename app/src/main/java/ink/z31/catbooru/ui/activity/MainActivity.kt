@@ -1,6 +1,7 @@
 package ink.z31.catbooru.ui.activity
 
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -10,6 +11,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -21,7 +23,6 @@ import co.zsmb.materialdrawerkt.builders.accountHeader
 import co.zsmb.materialdrawerkt.builders.drawer
 import com.chad.library.adapter.base.listener.OnLoadMoreListener
 import com.google.android.material.snackbar.Snackbar
-import com.mancj.materialsearchbar.MaterialSearchBar
 import com.mikepenz.iconics.typeface.library.googlematerial.GoogleMaterial
 import com.mikepenz.materialdrawer.AccountHeader
 import com.mikepenz.materialdrawer.Drawer
@@ -34,13 +35,13 @@ import ink.z31.catbooru.data.database.dao.BooruDao
 import ink.z31.catbooru.ui.adapter.PreviewAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
-import ink.z31.catbooru.ui.widget.searchBar.SearchBarSuggestionsAdapter
-import ink.z31.catbooru.ui.widget.searchBar.SearchSuggestion
-import ink.z31.catbooru.util.Base64Util
-import ink.z31.catbooru.util.EventMsg
-import ink.z31.catbooru.util.EventType
-import ink.z31.catbooru.util.SPUtil
+import ink.z31.catbooru.ui.widget.searchview.SearchBarSuggestionsAdapter
+import ink.z31.catbooru.ui.widget.searchview.SearchView
+import ink.z31.catbooru.util.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_main.searchView
+import kotlinx.android.synthetic.main.activity_test.*
+import kotlinx.android.synthetic.main.widget_search_bar.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -120,7 +121,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
         }
     }
 
-    @Suppress("unused")
+    @Suppress("UNUSED")
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onBooruChanged(msg: EventMsg) {
         if (msg.type == EventType.BOORU_CHANGE) {
@@ -155,72 +156,78 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
     private fun initSearchBar() {
         // 初始化搜索条
-        val adaptor = viewModel.tagSuggestionAdapter
-        adaptor.setOnSuggestionClickListener(object :
-            SearchBarSuggestionsAdapter.OnSuggestionClickListener {
-            override fun onClick(suggestion: SearchSuggestion, position: Int) {
-                if (searchBar.text.trim().isEmpty()) {
-                    searchBar.text = "${suggestion.suggestion} "
-                } else {
-                    val tags = searchBar.text.split(" ")
-                    val tagsLast = tags.subList(0, tags.lastIndex).toMutableList()
-                    tagsLast.add(suggestion.suggestion)
-                    searchBar.text = "${tagsLast.joinToString(" ")} "
-                }
-                searchBar.searchEditText.setSelection(searchBar.text.length)
+        val suggestionAdapter = viewModel.tagSuggestionAdapter
+        val searchViewHelper = object : SearchView.Helper {
+            override fun onSearchEditTextClick() {
+
             }
-        })
-        this.searchBar.setCustomSuggestionAdapter(adaptor)
-        this.searchBar.setOnSearchActionListener(object : MaterialSearchBar.OnSearchActionListener {
-            override fun onButtonClicked(buttonCode: Int) {
-                when (buttonCode) {
-                    MaterialSearchBar.BUTTON_NAVIGATION -> {
-                        materialDrawer.openDrawer()
-                    }
+
+            override fun onSearchEditTextBackPressed() {
+                if (searchView.state == SearchView.Companion.STATE.STATE_SEARCH) {
+                    searchView.setSearchState(SearchView.Companion.STATE.STATE_MAIN)
                 }
             }
 
-            override fun onSearchStateChanged(enabled: Boolean) {
+            override fun onLeftButtonClick() {
+                if (searchView.state == SearchView.Companion.STATE.STATE_SEARCH) {
+                    searchView.setSearchState(SearchView.Companion.STATE.STATE_MAIN)
+                }
+            }
+
+            override fun onRightButtonClick() {
 
             }
 
-            override fun onSearchConfirmed(text: CharSequence?) {
+            override fun onSearch(key: String) {
                 this@MainActivity.progressBar.visibility = View.VISIBLE
                 viewModel.launchNewSearchAsync(
-                    tags = text.toString(),
+                    tags = key,
                     onSuccess = onSuccess,
                     onEnd = onEnd,
                     onFail = onFail
                 )
-                this@MainActivity.searchBar.hideSuggestionsList()
-            }
-        })
-
-        this.searchBar.addTextChangeListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                searchView.titleHint = key
+                searchView.setSearchState(SearchView.Companion.STATE.STATE_MAIN)
             }
 
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                adaptor.filter.filter(this@MainActivity.searchBar.text)
-                adaptor.notifyDataSetChanged()
+            override fun onHintTextClick() {
+                searchView.setSearchState(SearchView.Companion.STATE.STATE_SEARCH)
+                val imm: InputMethodManager =
+                    AppUtil.context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS)
             }
 
-            override fun afterTextChanged(p0: Editable?) {
+            override fun onSearchTextChange(text: String) {
+                suggestionAdapter.filter.filter(text)
             }
 
-        })
+        }
+        suggestionAdapter.suggestionHelper = object :
+            SearchBarSuggestionsAdapter.SuggestionHelper {
+            override fun onSuggestionClick(suggestion: String, position: Int) {
+                if (searchView.text.trim().isEmpty()) {
+                    searchView.text = "$suggestion "
+                } else {
+                    val tags = searchView.text.split(" ")
+                    val tagsLast = tags.subList(0, tags.lastIndex).toMutableList()
+                    tagsLast.add(suggestion)
+                    searchView.text = "${tagsLast.joinToString(" ")} "
+                }
+                suggestionAdapter.filter.filter(searchView.text)
+            }
 
-        this.searchBar.searchEditText.setOnFocusChangeListener { _, has ->
-            if (has) {
-                this.searchBar.showSuggestionsList()
-            } else {
-                this.searchBar.hideSuggestionsList()
+            override fun onDataChanged() {
+                searchView.resizeSuggestions()
             }
         }
 
+        searchView.helper = searchViewHelper
+        searchView.suggestionsAdapter = suggestionAdapter
+
+
         SearchBarMover(
             this,
-            this.searchBarContainer,
+            this.searchView,
             this.previewRecyclerView
         )
     }
@@ -354,10 +361,9 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     }
 
     override fun onBackPressed() {
-        if (this.searchBar.isSuggestionsVisible) {
-            this.searchBar.hideSuggestionsList()
-        }
-        else if (materialDrawer.isDrawerOpen) {
+        if (searchView.suggestionOpen) {
+            searchView.suggestionOpen = false
+        } else if (materialDrawer.isDrawerOpen) {
             materialDrawer.closeDrawer()
         } else {
             val now = Date().time

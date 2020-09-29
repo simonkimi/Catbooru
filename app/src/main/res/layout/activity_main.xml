@@ -22,23 +22,11 @@
             app:layout_behavior="@string/appbar_scrolling_view_behavior"
             android:background="#FFF" />
 
-        <androidx.cardview.widget.CardView
-            android:id="@+id/searchBarContainer"
-            android:padding="0dp"
-            android:layout_margin="8dp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-            <com.mancj.materialsearchbar.MaterialSearchBar
-                android:id="@+id/searchBar"
-                android:background="@color/transparent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                app:mt_hint="@string/app_name"
-                app:mt_navIconEnabled="true"
-                app:mt_maxSuggestionsCount="20"
-                app:mt_placeholder="@string/app_name"
-                app:mt_dividerColor="#1F000000"/>
-        </androidx.cardview.widget.CardView>
+        <ink.z31.catbooru.ui.widget.searchview.SearchView
+            android:id="@+id/searchView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"/>
 
         <ProgressBar
             android:id="@+id/progressBar"

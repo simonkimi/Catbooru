@@ -21,7 +21,7 @@
                 android:layout_gravity="start|center_vertical"
                 android:clickable="true"
                 android:padding="12dp"
-                android:focusable="false" />
+                android:focusable="true" />
 
             <TextView
                 android:id="@+id/searchTitle"
@@ -45,7 +45,7 @@
                 android:layout_gravity="end|center_vertical"
                 android:clickable="true"
                 android:padding="12dp"
-                android:focusable="false" />
+                android:focusable="true" />
 
             <ink.z31.catbooru.ui.widget.searchview.SearchBarEditText
                 android:id="@+id/searchEditText"
@@ -55,7 +55,7 @@
                 android:layout_marginLeft="48dp"
                 android:layout_marginRight="48dp"
                 android:textSize="@dimen/text_little_small"
-                android:hint="搜索Catbooru"
+                android:hint="@string/hintSearch"
                 android:background="@null"
                 android:singleLine="true"
                 android:maxLines="1"
@@ -69,8 +69,8 @@
             android:id="@+id/suggestionContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:orientation="vertical">
 
             <View
                 android:id="@+id/suggestionDivider"

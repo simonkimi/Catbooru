@@ -3,4 +3,5 @@
     <string name="menu_vector_path" translatable="false">M20 30,L80 30,M20 50,L80 50,M20 70,L80 70</string>
     <string name="back_vector_path" translatable="false">M50 25,L80 50,M20 50,L80 50,M50 75,L80 50</string>
     <string name="add_vector_path" translatable="false">M50 20, L50 80, M20 50, L80 50</string>
+    <string name="fork_vector_path" translatable="false">M28.7867 28.7868, L71.2132, 71.2132, M28.7868 71.2132, L71.2132 28.7868</string>
 </resources>

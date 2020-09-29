@@ -10,8 +10,7 @@ import ink.z31.catbooru.data.network.BooruNetwork
 import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
-import ink.z31.catbooru.ui.widget.searchBar.SearchBarSuggestionsAdapter
-import ink.z31.catbooru.ui.widget.searchBar.SearchSuggestion
+import ink.z31.catbooru.ui.widget.searchview.SearchBarSuggestionsAdapter
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.NetUtil
 import ink.z31.catbooru.util.SPUtil
@@ -222,12 +221,9 @@ class MainViewModel : ViewModel() {
 
     private suspend fun updateSuggestion() {
         viewModelScope.launch {
-            val suggestion = mutableListOf<SearchSuggestion>()
-            suggestion.addAll(
-                searchHistoryDao.getAllData()
-                    .map { SearchSuggestion(suggestion = "__his__${it.data}") })
-            suggestion.addAll(
-                tagStoreDao.getAll().map { SearchSuggestion(suggestion = "__tag__${it.tag}") })
+            val suggestion = mutableListOf<String>()
+            suggestion.addAll(searchHistoryDao.getAllData().map { "__his__${it.data}" })
+            suggestion.addAll(tagStoreDao.getAll().map { "__tag__${it.tag}" })
             tagSuggestionAdapter.suggestions = suggestion
             tagSuggestionAdapter.filter.filter(searchTag)
         }

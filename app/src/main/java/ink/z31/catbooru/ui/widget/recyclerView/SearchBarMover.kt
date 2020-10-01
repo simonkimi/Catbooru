@@ -4,6 +4,7 @@ import android.animation.Animator
 import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.view.View
+import androidx.core.animation.addListener
 import androidx.recyclerview.widget.RecyclerView
 import ink.z31.catbooru.util.MathUtils.clamp
 import ink.z31.catbooru.util.ViewUtils.getY2
@@ -38,8 +39,7 @@ class SearchBarMover(
         if (mSearchBar.height == 0) {
             return
         }
-        val show: Boolean
-        show = if (mHelper.forceShowSearchBar()) {
+        val show = if (mHelper.forceShowSearchBar()) {
             true
         } else {
             val recyclerView = mHelper.getValidRecyclerView() ?: return
@@ -51,23 +51,19 @@ class SearchBarMover(
                 getY2(mSearchBar).toInt() > mSearchBar.height / 2
             }
         }
-        val offset: Int
-        offset = if (show) {
+        val offset = if (show) {
             (-mSearchBar.translationY).toInt()
         } else {
             (-getY2(mSearchBar)).toInt()
         }
         if (offset == 0) {
-            // No need to scroll
             return
         }
         if (animation) {
             if (mSearchBarMoveAnimator != null) {
                 mSearchBarMoveAnimator = if (mShow == show) {
-                    // The same target, no need to do animation
                     return
                 } else {
-                    // Cancel it
                     mSearchBarMoveAnimator!!.cancel()
                     null
                 }
@@ -75,10 +71,8 @@ class SearchBarMover(
             mShow = show
             val va = ValueAnimator.ofInt(0, offset)
             va.duration = ANIMATE_TIME
-            va.addListener(object : SimpleAnimatorListener() {
-                override fun onAnimationEnd(animation: Animator) {
-                    mSearchBarMoveAnimator = null
-                }
+            va.addListener(onEnd = {
+                mSearchBarMoveAnimator = null
             })
             va.addUpdateListener(object : AnimatorUpdateListener {
                 var lastValue = 0
@@ -112,11 +106,4 @@ class SearchBarMover(
             recyclerView.addOnScrollListener(this)
         }
     }
-}
-
-internal abstract class SimpleAnimatorListener : Animator.AnimatorListener {
-    override fun onAnimationStart(animation: Animator) {}
-    override fun onAnimationEnd(animation: Animator) {}
-    override fun onAnimationCancel(animation: Animator) {}
-    override fun onAnimationRepeat(animation: Animator) {}
 }

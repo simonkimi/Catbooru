@@ -32,7 +32,7 @@ import ink.z31.catbooru.data.database.AppDatabase
 import ink.z31.catbooru.data.database.dao.BooruDao
 import ink.z31.catbooru.ui.adapter.PreviewAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
-import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
+import ink.z31.catbooru.ui.widget.searchview.SearchBarMover
 import ink.z31.catbooru.ui.adapter.SearchBarSuggestionsAdapter
 import ink.z31.catbooru.ui.widget.searchview.SearchView
 import ink.z31.catbooru.util.*

@@ -1,6 +1,5 @@
-package ink.z31.catbooru.ui.widget.recyclerView
+package ink.z31.catbooru.ui.widget.searchview
 
-import android.animation.Animator
 import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.view.View

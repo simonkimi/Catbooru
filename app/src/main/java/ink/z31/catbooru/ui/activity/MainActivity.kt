@@ -169,13 +169,27 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             }
 
             override fun onLeftButtonClick() {
-                if (searchView.state == SearchView.Companion.STATE.STATE_SEARCH) {
-                    searchView.setSearchState(SearchView.Companion.STATE.STATE_MAIN)
+
+                when(searchView.state) {
+                    SearchView.Companion.STATE.STATE_SEARCH -> {
+                        searchView.setSearchState(SearchView.Companion.STATE.STATE_MAIN)
+                    }
+                    SearchView.Companion.STATE.STATE_MAIN -> {
+                        materialDrawer.openDrawer()
+                    }
                 }
+
             }
 
             override fun onRightButtonClick() {
-
+                when(searchView.state) {
+                    SearchView.Companion.STATE.STATE_SEARCH -> {
+                        searchView.text = ""
+                    }
+                    SearchView.Companion.STATE.STATE_MAIN -> {
+                        // TODO 设计过滤器
+                    }
+                }
             }
 
             override fun onSearch(key: String) {

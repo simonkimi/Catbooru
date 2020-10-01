@@ -7,8 +7,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -35,13 +33,11 @@ import ink.z31.catbooru.data.database.dao.BooruDao
 import ink.z31.catbooru.ui.adapter.PreviewAdapter
 import ink.z31.catbooru.ui.viewModel.MainViewModel
 import ink.z31.catbooru.ui.widget.recyclerView.SearchBarMover
-import ink.z31.catbooru.ui.widget.searchview.SearchBarSuggestionsAdapter
+import ink.z31.catbooru.ui.adapter.SearchBarSuggestionsAdapter
 import ink.z31.catbooru.ui.widget.searchview.SearchView
 import ink.z31.catbooru.util.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.activity_main.searchView
-import kotlinx.android.synthetic.main.activity_test.*
-import kotlinx.android.synthetic.main.widget_search_bar.view.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode

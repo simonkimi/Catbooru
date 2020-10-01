@@ -10,7 +10,7 @@ import ink.z31.catbooru.data.network.BooruNetwork
 import ink.z31.catbooru.data.network.DanbooruNetwork
 import ink.z31.catbooru.data.network.GelbooruNetwork
 import ink.z31.catbooru.data.network.MoebooruNetwork
-import ink.z31.catbooru.ui.widget.searchview.SearchBarSuggestionsAdapter
+import ink.z31.catbooru.ui.adapter.SearchBarSuggestionsAdapter
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.NetUtil
 import ink.z31.catbooru.util.SPUtil

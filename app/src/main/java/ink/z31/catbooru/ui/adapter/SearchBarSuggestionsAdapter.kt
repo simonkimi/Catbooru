@@ -1,4 +1,4 @@
-package ink.z31.catbooru.ui.widget.searchview
+package ink.z31.catbooru.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +7,7 @@ import android.widget.Filter
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ink.z31.catbooru.R
+import ink.z31.catbooru.ui.widget.searchview.SuggestionsAdapter
 import kotlin.math.min
 
 

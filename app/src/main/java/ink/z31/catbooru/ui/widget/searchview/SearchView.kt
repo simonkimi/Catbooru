@@ -212,7 +212,7 @@ class SearchView : CardView {
             anim.interpolator = DecelerateInterpolator()
             anim.addUpdateListener {
                 val layoutParams = view.layoutParams
-                layoutParams.height = (view.height * (1 - it.animatedFraction)).toInt()
+                layoutParams.height = (it.animatedValue as Float).toInt()
                 view.layoutParams = layoutParams
             }
             anim.addListener(onEnd = {

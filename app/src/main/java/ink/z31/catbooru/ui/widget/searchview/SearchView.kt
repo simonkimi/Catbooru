@@ -188,7 +188,7 @@ class SearchView : CardView {
     private fun animateSuggestions(isShow: Boolean) {
         // 显示
         val view = suggestionContainer
-        if (isShow && suggestionsAdapter?.itemCount != 0) {
+        if (isShow && suggestionsAdapter?.itemCount != 0 && view.visibility != View.VISIBLE) {
             view.measure(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
@@ -209,7 +209,8 @@ class SearchView : CardView {
             }
             anim.start()
         }
-        if (!isShow) {
+
+        if (!isShow && view.visibility != View.GONE) {
             val anim = ValueAnimator.ofInt(view.height, 0)
             anim.duration = animDuration
             anim.addUpdateListener {
@@ -218,7 +219,7 @@ class SearchView : CardView {
                 view.layoutParams = layoutParams
             }
             anim.addListener(onEnd = {
-                view.visibility == View.GONE
+                view.visibility = View.GONE
             })
             anim.start()
         }

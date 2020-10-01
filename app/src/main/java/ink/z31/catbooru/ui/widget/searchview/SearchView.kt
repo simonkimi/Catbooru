@@ -1,7 +1,7 @@
 package ink.z31.catbooru.ui.widget.searchview
 
 
-import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
@@ -11,16 +11,18 @@ import android.text.TextWatcher
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.LinearLayout
 import androidx.cardview.widget.CardView
+import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import ink.z31.catbooru.R
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.ViewUtils
 import kotlinx.android.synthetic.main.widget_search_bar.view.*
-import kotlin.math.min
 
 
 class SearchView : CardView {
@@ -94,18 +96,7 @@ class SearchView : CardView {
         set(value) {
             field = value
             suggestionsAdapter?.let {
-                if (value && it.suggestions.isNotEmpty()) {
-                    val location1 = IntArray(2)
-                    this.getLocationInWindow(location1)
-                    val height =
-                        resources.displayMetrics.heightPixels - y - location1[1] - this.height
-                    animateSuggestions(
-                        0,
-                        min(height.toInt(), it.suggestionItemHeight() * it.suggestionsFiltered.size)
-                    )
-                } else {
-                    animateSuggestions(this.height, 0)
-                }
+                animateSuggestions(value)
             }
         }
 
@@ -145,7 +136,6 @@ class SearchView : CardView {
 
         }
         val layoutManager = LinearLayoutManager(context)
-        layoutManager.stackFromEnd = true
         suggestionRecyclerView.layoutManager = layoutManager
     }
 
@@ -194,57 +184,44 @@ class SearchView : CardView {
         searchEditText.addTextChangedListener(watcher)
     }
 
-    fun resizeSuggestions() {
-        suggestionsAdapter?.let {
-            if (state == STATE.STATE_SEARCH) {
-                val fitSize = it.suggestionItemHeight() * it.suggestionsFiltered.size
-                val location1 = IntArray(2)
-                this.getLocationInWindow(location1)
-                val windowsSize =
-                    resources.displayMetrics.heightPixels - y - location1[1] - this.height
-                if (fitSize < windowsSize) {
-                    animateSuggestions(this.height, fitSize)
-                }
+
+    private fun animateSuggestions(isShow: Boolean) {
+        // 显示
+        val view = suggestionContainer
+        if (isShow && suggestionsAdapter?.itemCount != 0) {
+            view.measure(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            val targetHeight = view.measuredHeight
+            view.layoutParams.height = 0
+            view.visibility = View.VISIBLE;
+            val anim = ValueAnimator.ofInt(0, targetHeight)
+            anim.duration = animDuration
+            anim.addUpdateListener {
+                val layoutParams = view.layoutParams
+                layoutParams.height = (targetHeight * it.animatedFraction).toInt()
+                view.layoutParams = layoutParams
             }
+            anim.addListener {
+                val layoutParams = view.layoutParams
+                layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+            }
+            anim.start()
         }
-    }
-
-
-    private fun animateSuggestions(from: Int, to: Int) {
-        if (to > 0) {
-            suggestionContainer.visibility = View.VISIBLE
+        if (!isShow) {
+            val anim = ValueAnimator.ofInt(view.height, 0)
+            anim.duration = animDuration
+            anim.addUpdateListener {
+                val layoutParams = view.layoutParams
+                layoutParams.height = it.animatedValue as Int
+                view.layoutParams = layoutParams
+            }
+            anim.addListener(onEnd = {
+                view.visibility == View.GONE
+            })
+            anim.start()
         }
-        if (to > 0 && suggestionsAdapter?.itemCount ?: 0 == 0) {
-            return
-        }
-        val lp = suggestionRecyclerView.layoutParams
-        val animator = ValueAnimator.ofInt(from, to)
-            .setDuration(animDuration)
-        animator.addUpdateListener {
-            lp.height = it.animatedValue as Int
-            suggestionRecyclerView.layoutParams = lp
-        }
-        animator.addListener(object : Animator.AnimatorListener {
-            override fun onAnimationStart(p0: Animator?) {
-
-            }
-
-            override fun onAnimationEnd(p0: Animator?) {
-                if (to == 0) {
-                    suggestionContainer.visibility = View.GONE
-                }
-            }
-
-            override fun onAnimationCancel(p0: Animator?) {
-
-            }
-
-            override fun onAnimationRepeat(p0: Animator?) {
-
-            }
-
-        })
-        animator.start()
     }
 
     interface Helper {

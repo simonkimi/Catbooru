@@ -7,6 +7,7 @@ import android.widget.Filter
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import ink.z31.catbooru.R
+import kotlin.math.min
 
 
 class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
@@ -37,7 +38,7 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
             override fun performFiltering(p0: CharSequence?): FilterResults {
                 val input = p0!!.toString()
                 val results = FilterResults()
-                results.values = if (input.trim().isEmpty()) {
+                var res = if (input.trim().isEmpty()) {
                     suggestions
                         .filter { it.startsWith("__his__") }
                         .map {
@@ -55,19 +56,16 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
                         .map { it.substring("__tag__".length, it.length) }
                         .filter { !tags.contains(it) }
                         .filter { it.contains(lastTag) }
-
                 }
+                res = res.subList(0, min(suggestionsMaxShow(), res.size))
+                results.values = res
                 return results
             }
 
             @Suppress("UNCHECKED_CAST")
             override fun publishResults(p0: CharSequence?, p1: FilterResults?) {
-                val newData = p1!!.values as List<String>
-                if (suggestionsFiltered.size != newData.size) {
-                    suggestionsFiltered = newData
-                    notifyDataSetChanged()
-                    suggestionHelper?.onDataChanged()
-                }
+                suggestionsFiltered = p1!!.values as List<String>
+                notifyDataSetChanged()
             }
 
         }
@@ -85,12 +83,9 @@ class SearchBarSuggestionsAdapter(inflater: LayoutInflater) :
 
     interface SuggestionHelper {
         fun onSuggestionClick(suggestion: String, position: Int)
-        fun onDataChanged()
     }
 
-    override fun suggestionItemHeight(): Int {
-        return 144
+    override fun suggestionsMaxShow(): Int {
+        return 100
     }
-
-
 }

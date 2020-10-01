@@ -54,7 +54,7 @@ class SampleSuggestionAdapter(inflater: LayoutInflater) :
         }
     }
 
-    override fun suggestionItemHeight(): Int {
-        return 144
+    override fun suggestionsMaxShow(): Int {
+        return 100
     }
 }

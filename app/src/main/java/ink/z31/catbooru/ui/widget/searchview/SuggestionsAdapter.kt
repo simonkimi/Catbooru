@@ -27,5 +27,6 @@ abstract class SuggestionsAdapter<T, V : RecyclerView.ViewHolder>(val layoutInfl
 
     abstract fun onBindSuggestionHolder(suggestion: T?, holder: V, position: Int)
 
-    abstract fun suggestionItemHeight(): Int
+
+    abstract fun suggestionsMaxShow(): Int
 }

@@ -215,10 +215,6 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                 }
                 suggestionAdapter.filter.filter(searchView.text)
             }
-
-            override fun onDataChanged() {
-                searchView.resizeSuggestions()
-            }
         }
 
         searchView.helper = searchViewHelper

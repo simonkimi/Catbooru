@@ -1,17 +1,16 @@
 package ink.z31.catbooru.ui.widget.searchview
 
 
-import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Context
 import android.content.Context.INPUT_METHOD_SERVICE
 import android.graphics.drawable.Animatable
 import android.graphics.drawable.Drawable
-import android.text.TextWatcher
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
@@ -19,7 +18,6 @@ import androidx.cardview.widget.CardView
 import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import ink.z31.catbooru.R
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.ViewUtils
@@ -136,7 +134,6 @@ class SearchView : CardView {
 
         }
         val layoutManager = object : LinearLayoutManager(context) {
-
         }
         suggestionRecyclerView.layoutManager = layoutManager
     }
@@ -183,11 +180,9 @@ class SearchView : CardView {
     }
 
 
-
     private fun animateSuggestions(isShow: Boolean) {
         // 显示
-        val view = suggestionRecyclerView
-        suggestionDivider.visibility = View.VISIBLE
+        val view = suggestionContainer
         if (isShow && suggestionsAdapter?.itemCount != 0 && view.visibility != View.VISIBLE) {
             view.measure(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -196,7 +191,8 @@ class SearchView : CardView {
             val targetHeight = view.measuredHeight
             view.layoutParams.height = 0
             view.visibility = View.VISIBLE;
-            val anim = ValueAnimator.ofInt(0, targetHeight)
+            val anim = ValueAnimator.ofFloat(0F, targetHeight.toFloat())
+            anim.interpolator = DecelerateInterpolator()
             anim.duration = animDuration
             anim.addUpdateListener {
                 val layoutParams = view.layoutParams
@@ -211,16 +207,16 @@ class SearchView : CardView {
         }
 
         if (!isShow && view.visibility != View.GONE) {
-            val anim = ValueAnimator.ofInt(view.height, 0)
+            val anim = ValueAnimator.ofFloat(view.height.toFloat(), 0F)
             anim.duration = animDuration
+            anim.interpolator = DecelerateInterpolator()
             anim.addUpdateListener {
                 val layoutParams = view.layoutParams
-                layoutParams.height = it.animatedValue as Int
+                layoutParams.height = (view.height * (1 - it.animatedFraction)).toInt()
                 view.layoutParams = layoutParams
             }
             anim.addListener(onEnd = {
                 view.visibility = View.GONE
-                suggestionDivider.visibility = View.GONE
             })
             anim.start()
         }

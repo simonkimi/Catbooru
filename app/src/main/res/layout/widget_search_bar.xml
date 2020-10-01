@@ -66,6 +66,8 @@
         </FrameLayout>
 
         <LinearLayout
+            android:id="@+id/suggestionContainer"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
@@ -76,7 +78,6 @@
                 android:background="#1F000000"/>
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/suggestionRecyclerView"
-                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
         </LinearLayout>

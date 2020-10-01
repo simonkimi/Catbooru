@@ -209,6 +209,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
             override fun onSearchTextChange(text: String) {
                 suggestionAdapter.filter.filter(text)
+                searchView.suggestionOpen = true
             }
 
         }
@@ -216,12 +217,12 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             SearchBarSuggestionsAdapter.SuggestionHelper {
             override fun onSuggestionClick(suggestion: String, position: Int) {
                 if (searchView.text.trim().isEmpty()) {
-                    searchView.text = "$suggestion "
+                    searchView.text = suggestion
                 } else {
                     val tags = searchView.text.split(" ")
                     val tagsLast = tags.subList(0, tags.lastIndex).toMutableList()
                     tagsLast.add(suggestion)
-                    searchView.text = "${tagsLast.joinToString(" ")} "
+                    searchView.text = tagsLast.joinToString(" ")
                 }
                 suggestionAdapter.filter.filter(searchView.text)
             }

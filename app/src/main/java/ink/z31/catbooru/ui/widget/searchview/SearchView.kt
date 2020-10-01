@@ -19,6 +19,7 @@ import androidx.cardview.widget.CardView
 import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import ink.z31.catbooru.R
 import ink.z31.catbooru.util.AppUtil
 import ink.z31.catbooru.util.ViewUtils
@@ -100,7 +101,6 @@ class SearchView : CardView {
             }
         }
 
-
     init {
         val layoutInflater = LayoutInflater.from(context)
         layoutInflater.inflate(R.layout.widget_search_bar, this)
@@ -135,7 +135,9 @@ class SearchView : CardView {
             }
 
         }
-        val layoutManager = LinearLayoutManager(context)
+        val layoutManager = object : LinearLayoutManager(context) {
+
+        }
         suggestionRecyclerView.layoutManager = layoutManager
     }
 
@@ -180,14 +182,12 @@ class SearchView : CardView {
         this.state = state
     }
 
-    fun addTextChangedListener(watcher: TextWatcher) {
-        searchEditText.addTextChangedListener(watcher)
-    }
 
 
     private fun animateSuggestions(isShow: Boolean) {
         // 显示
-        val view = suggestionContainer
+        val view = suggestionRecyclerView
+        suggestionDivider.visibility = View.VISIBLE
         if (isShow && suggestionsAdapter?.itemCount != 0 && view.visibility != View.VISIBLE) {
             view.measure(
                 LinearLayout.LayoutParams.MATCH_PARENT,
@@ -203,10 +203,10 @@ class SearchView : CardView {
                 layoutParams.height = (targetHeight * it.animatedFraction).toInt()
                 view.layoutParams = layoutParams
             }
-            anim.addListener {
+            anim.addListener(onEnd = {
                 val layoutParams = view.layoutParams
                 layoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-            }
+            })
             anim.start()
         }
 
@@ -220,6 +220,7 @@ class SearchView : CardView {
             }
             anim.addListener(onEnd = {
                 view.visibility = View.GONE
+                suggestionDivider.visibility = View.GONE
             })
             anim.start()
         }

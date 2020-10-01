@@ -16,7 +16,6 @@ abstract class SuggestionsAdapter<T, V : RecyclerView.ViewHolder>(val layoutInfl
             notifyDataSetChanged()
         }
 
-
     override fun onBindViewHolder(holder: V, position: Int) {
         onBindSuggestionHolder(suggestionsFiltered[position], holder, position)
     }

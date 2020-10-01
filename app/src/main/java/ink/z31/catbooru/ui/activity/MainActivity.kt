@@ -180,7 +180,11 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
             override fun onRightButtonClick() {
                 when(searchView.state) {
                     SearchView.Companion.STATE.STATE_SEARCH -> {
-                        searchView.text = ""
+                        if (searchView.text.isNotEmpty()) {
+                            searchView.text = ""
+                        } else {
+                            searchView.setSearchState(SearchView.Companion.STATE.STATE_MAIN)
+                        }
                     }
                     SearchView.Companion.STATE.STATE_MAIN -> {
                         // TODO 设计过滤器

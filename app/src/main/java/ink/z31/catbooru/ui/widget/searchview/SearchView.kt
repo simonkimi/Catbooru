@@ -190,7 +190,7 @@ class SearchView : CardView {
             )
             val targetHeight = view.measuredHeight
             view.layoutParams.height = 0
-            view.visibility = View.VISIBLE;
+            view.visibility = View.VISIBLE
             val anim = ValueAnimator.ofFloat(0F, targetHeight.toFloat())
             anim.interpolator = DecelerateInterpolator()
             anim.duration = animDuration

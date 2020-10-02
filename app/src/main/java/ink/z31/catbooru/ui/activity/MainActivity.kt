@@ -363,7 +363,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     }
 
     override fun forceShowSearchBar(): Boolean {
-        return false
+        return searchView.state != SearchView.Companion.STATE.STATE_MAIN
     }
 
     override fun onDestroy() {

@@ -24,7 +24,7 @@ class SearchBarMover(
     }
 
     override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-        if (mHelper.isValidView(recyclerView)) {
+        if (mHelper.isValidView(recyclerView) && !mHelper.forceShowSearchBar()) {
             val oldBottom = getY2(mSearchBar).toInt()
             val offsetYStep = clamp(-dy, -oldBottom, (-mSearchBar.translationY).toInt())
             if (offsetYStep != 0) {

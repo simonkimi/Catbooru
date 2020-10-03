@@ -110,6 +110,7 @@ class MainViewModel : ViewModel() {
     fun launchNewBooruAsync(booruId: Int, onSuccess: () -> Unit) {
         viewModelScope.launch {
             booru = booruListDao.getBooru(booruId)[0]
+            booruPostList.value = mutableListOf()
             launchNewBooru(booru)
             onSuccess()
         }

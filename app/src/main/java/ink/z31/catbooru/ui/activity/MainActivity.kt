@@ -58,15 +58,15 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
     private lateinit var previewAdapter: PreviewAdapter
 
     private val onSuccess = {
-        this@MainActivity.progressBar.visibility = View.INVISIBLE
+        this@MainActivity.progressBar.visibility = View.GONE
         previewAdapter.loadMoreModule.loadMoreComplete()
     }
     private val onEnd = {
-        this@MainActivity.progressBar.visibility = View.INVISIBLE
+        this@MainActivity.progressBar.visibility = View.GONE
         previewAdapter.loadMoreModule.loadMoreEnd()
     }
     private val onFail = { it: String ->
-        this@MainActivity.progressBar.visibility = View.INVISIBLE
+        this@MainActivity.progressBar.visibility = View.GONE
         previewAdapter.loadMoreModule.loadMoreComplete()
         this.addRetryFooter(it)
     }
@@ -89,6 +89,9 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
     private val loadMoreListener = OnLoadMoreListener {
         Log.i(TAG, "下拉加载下一面")
+        if (this.viewModel.booruPostList.value?.isEmpty() != false && progressBar.visibility == View.GONE) {
+            progressBar.visibility = View.VISIBLE
+        }
         viewModel.launchNextPage(
             onSuccess = {
                 onSuccess()
@@ -256,6 +259,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
 
                 onProfileChanged { _, profile, _ ->
                     if (profile.identifier != 999_999_999.toLong()) {
+                        initPreview()
                         viewModel.launchNewBooruAsync(
                             booruId = profile.identifier.toInt(),
                             onSuccess = {
@@ -285,6 +289,7 @@ class MainActivity : AppCompatActivity(), SearchBarMover.Helper {
                             position: Int,
                             drawerItem: IDrawerItem<*>
                         ): Boolean {
+                            initPreview()
                             viewModel.launchNewBooruAsync(
                                 booruId = it.id.toInt(),
                                 onSuccess = {
